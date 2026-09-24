@@ -25,7 +25,7 @@ function pathname(id: string) {
 }
 
 async function readOrder(id: string): Promise<Order | null> {
-  const result = await get(pathname(id), { access: "private" });
+  const result = await get(pathname(id), { access: "private", useCache: false });
   if (!result || result.statusCode !== 200) return null;
   return new Response(result.stream).json() as Promise<Order>;
 }
@@ -39,7 +39,7 @@ export async function saveOrder(order: Order): Promise<void> {
       access: "private",
       addRandomSuffix: false,
       contentType: "application/json",
-      cacheControlMaxAge: 0,
+      cacheControlMaxAge: 60,
     });
   } catch (error) {
     // Another request may have created the same order while we were checking.
@@ -73,7 +73,7 @@ export async function updateOrderStatus(id: string, status: string): Promise<boo
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: "application/json",
-    cacheControlMaxAge: 0,
+    cacheControlMaxAge: 60,
   });
   return true;
 }
