@@ -1,13 +1,14 @@
-# AutoCharge Maroc — Vercel deployment
+# AutoCharge Maroc — Next.js on Vercel
 
-This edition runs on standard Next.js with `next build` and Vercel Functions. It retains the product page, order form, dashboard, and automatic order refresh.
+The storefront is at `/store.html` and the password-protected order dashboard is at `/dashboard`. Orders are stored as individual private JSON files in Vercel Blob. This project does not require Postgres or a SQL database.
 
-## Setup
+## Vercel setup
 
-1. Create a Postgres database through Vercel Storage (for example Neon) and connect it to the Vercel project. Verify that the deployment receives `DATABASE_URL`.
-2. Run `vercel-schema.sql` once in your database's SQL editor. This creates the orders table. Existing orders from the Sites D1 database are not automatically copied.
-3. In Vercel Project Settings → Environment Variables, set `ADMIN_PASSWORD` to a private password of at least 16 characters. Add it for Production (and Preview if desired). Redeploy after setting variables.
-4. Set the Framework Preset to Next.js and disable any prior Build Command or Output Directory override. The project runs `npm run build` → `next build`.
-5. The storefront is at `/store.html`; the dashboard is at `/dashboard`. Sign in with the `ADMIN_PASSWORD` you configured. Test an order and verify it appears in the dashboard.
+1. In your Vercel project, open **Storage**, create a **Blob** store with **Private** access, and connect it to this project for Production. Vercel provides `BLOB_READ_WRITE_TOKEN` for the connected store. Public Blob storage is unsuitable for customer names, phones, and addresses.
+2. In **Settings → Environment Variables**, set `ADMIN_PASSWORD` to a private password of at least 16 characters for Production.
+3. Redeploy after connecting the store and setting the password. The project must use the **Next.js** framework preset and its `npm run build` command.
+4. Submit a test order at `/store.html`, then sign in at `/dashboard` to check that it appears and change its status.
 
-Locally, run `npm ci`, create `.env.local` with `DATABASE_URL` and `ADMIN_PASSWORD`, execute the schema in the database, and run `npm run dev`. Keep `.env.local` private. This project does not include the database contents or secrets.
+The project does not contain credentials or order data. Existing orders in the former Sites D1 database or Postgres database do not move automatically. Keep the private Blob store connected across future deployments; order files survive code updates. Blob storage operations may count toward Vercel usage.
+
+Locally, run `npm ci`, add `BLOB_READ_WRITE_TOKEN` and `ADMIN_PASSWORD` to a private `.env.local`, then run `npm run dev`. Do not commit `.env.local`.

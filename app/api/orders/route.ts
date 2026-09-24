@@ -1,4 +1,4 @@
-import { sql } from "@/lib/orders-db";
+import { getOrders, saveOrder } from "@/lib/orders-files";
 import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ function wantsJson(request: NextRequest) {return request.headers.get("accept")?.
 export async function GET(request: NextRequest) {
   if(!(await isAdmin())) return NextResponse.json({error:"Accès refusé"},{status:403});
   try {
-    const orders=await sql<Order>`SELECT id, created_at, name, phone, city, address, quantity, total_cents, status FROM orders ORDER BY created_at DESC LIMIT 500`;
+    const orders=await getOrders();
     return NextResponse.json({orders},{headers:{"Cache-Control":"no-store"}});
   } catch(error) {console.error("Orders load failed",error);return NextResponse.json({error:"Commandes indisponibles"},{status:503});}
 }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
   const now=new Date().toISOString();
   const discount=(quantity-1)*1780;
   try {
-    await sql`INSERT INTO orders (id, created_at, name, phone, city, address, quantity, unit_price_cents, discount_cents, total_cents, language, status, updated_at) VALUES (${id}, ${now}, ${name}, ${phone}, ${city}, ${address}, ${quantity}, ${price}, ${discount}, ${quantity*price-discount}, ${language}, ${"Nouveau"}, ${now}) ON CONFLICT (id) DO NOTHING`;
+    await saveOrder({id,created_at:now,name,phone,city,address,quantity,unit_price_cents:price,discount_cents:discount,total_cents:quantity*price-discount,language,status:"Nouveau",updated_at:now});
     if(wantsJson(request)) return NextResponse.json({ok:true,id});
     return NextResponse.redirect(new URL(`/order-confirmation?lang=${language}`,request.url),303);
   } catch(error) {
