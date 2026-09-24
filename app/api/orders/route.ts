@@ -1,15 +1,16 @@
-import { env } from "cloudflare:workers";
+import { sql } from "@/lib/orders-db";
 import { NextRequest, NextResponse } from "next/server";
-export const runtime = "edge";
+import { isAdmin } from "@/lib/admin-auth";
+export const runtime = "nodejs";
 const price = 17800;
 type Order = {id:string;created_at:string;name:string;phone:string;city:string;address:string;quantity:number;total_cents:number;status:string};
 function clean(value: FormDataEntryValue | null, max: number) { return typeof value === "string" ? value.trim().slice(0,max) : ""; }
 function wantsJson(request: NextRequest) {return request.headers.get("accept")?.includes("application/json") ?? false;}
 export async function GET(request: NextRequest) {
-  if(request.headers.get("oai-authenticated-user-email")?.toLowerCase()!=="simouaamer@gmail.com") return NextResponse.json({error:"Accès refusé"},{status:403});
+  if(!(await isAdmin())) return NextResponse.json({error:"Accès refusé"},{status:403});
   try {
-    const result=await env.DB.prepare("SELECT id, created_at, name, phone, city, address, quantity, total_cents, status FROM orders ORDER BY created_at DESC LIMIT 500").all<Order>();
-    return NextResponse.json({orders:result.results||[]},{headers:{"Cache-Control":"no-store"}});
+    const orders=await sql<Order>`SELECT id, created_at, name, phone, city, address, quantity, total_cents, status FROM orders ORDER BY created_at DESC LIMIT 500`;
+    return NextResponse.json({orders},{headers:{"Cache-Control":"no-store"}});
   } catch(error) {console.error("Orders load failed",error);return NextResponse.json({error:"Commandes indisponibles"},{status:503});}
 }
 export async function POST(request: NextRequest) {
@@ -34,8 +35,7 @@ export async function POST(request: NextRequest) {
   const now=new Date().toISOString();
   const discount=(quantity-1)*1780;
   try {
-    await env.DB.prepare("INSERT OR IGNORE INTO orders (id, created_at, name, phone, city, address, quantity, unit_price_cents, discount_cents, total_cents, language, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .bind(id,now,name,phone,city,address,quantity,price,discount,quantity*price-discount,language,"Nouveau",now).run();
+    await sql`INSERT INTO orders (id, created_at, name, phone, city, address, quantity, unit_price_cents, discount_cents, total_cents, language, status, updated_at) VALUES (${id}, ${now}, ${name}, ${phone}, ${city}, ${address}, ${quantity}, ${price}, ${discount}, ${quantity*price-discount}, ${language}, ${"Nouveau"}, ${now}) ON CONFLICT (id) DO NOTHING`;
     if(wantsJson(request)) return NextResponse.json({ok:true,id});
     return NextResponse.redirect(new URL(`/order-confirmation?lang=${language}`,request.url),303);
   } catch(error) {

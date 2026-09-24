@@ -1,20 +1,13 @@
-# AutoCharge Maroc — Next.js project
+# AutoCharge Maroc — Vercel deployment
 
-This is the source for the Chargeur Voiture 4-en-1 Maroc site. It uses the Next.js 16 App Router, React, TypeScript, and Cloudflare D1 for orders. Vinext adapts the Next.js app to the Cloudflare Workers environment used by Sites.
+This edition runs on standard Next.js with `next build` and Vercel Functions. It retains the product page, order form, dashboard, and automatic order refresh.
 
-## Pages and order flow
+## Setup
 
-- `/store.html` is the customer storefront and order form.
-- `/dashboard` is the owner's order dashboard. It requires Sign in with ChatGPT and the configured owner email.
-- `/api/orders` accepts orders and supplies dashboard updates.
-- `/api/orders/status` changes the order status.
-- `drizzle/0000_strong_gertrude_yorkes.sql` contains the initial orders table migration.
+1. Create a Postgres database through Vercel Storage (for example Neon) and connect it to the Vercel project. Verify that the deployment receives `DATABASE_URL`.
+2. Run `vercel-schema.sql` once in your database's SQL editor. This creates the orders table. Existing orders from the Sites D1 database are not automatically copied.
+3. In Vercel Project Settings → Environment Variables, set `ADMIN_PASSWORD` to a private password of at least 16 characters. Add it for Production (and Preview if desired). Redeploy after setting variables.
+4. Set the Framework Preset to Next.js and disable any prior Build Command or Output Directory override. The project runs `npm run build` → `next build`.
+5. The storefront is at `/store.html`; the dashboard is at `/dashboard`. Sign in with the `ADMIN_PASSWORD` you configured. Test an order and verify it appears in the dashboard.
 
-## Run locally
-
-Use Node.js 22.13 or newer, then run `npm ci` and `npm run dev`. For a production build, run `npm run build`. The development and build scripts use Vinext so the Next.js routes can access the Cloudflare D1 binding. A local database must be initialized with the SQL migration to exercise order submission and the dashboard. The public storefront remains available without it.
-
-The hosted site requires the Sites D1 binding `DB` and its existing authentication headers. Deploying this ZIP to an ordinary Node.js Next.js server requires replacing the Cloudflare database and authentication adapters; copying the files to another host alone does not provide its order database.
-
-Keep `public/assets` together with `public/store.html` when moving or deploying the project. The project is configured for its existing Sites deployment by `.openai/hosting.json`.
-"# product-page" 
+Locally, run `npm ci`, create `.env.local` with `DATABASE_URL` and `ADMIN_PASSWORD`, execute the schema in the database, and run `npm run dev`. Keep `.env.local` private. This project does not include the database contents or secrets.
