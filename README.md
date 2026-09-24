@@ -17,3 +17,4 @@ Use Node.js 22.13 or newer, then run `npm ci` and `npm run dev`. For a productio
 The hosted site requires the Sites D1 binding `DB` and its existing authentication headers. Deploying this ZIP to an ordinary Node.js Next.js server requires replacing the Cloudflare database and authentication adapters; copying the files to another host alone does not provide its order database.
 
 Keep `public/assets` together with `public/store.html` when moving or deploying the project. The project is configured for its existing Sites deployment by `.openai/hosting.json`.
+"# product-page" 
