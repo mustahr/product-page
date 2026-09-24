@@ -1,0 +1,46 @@
+import { env } from "cloudflare:workers";
+import { NextRequest, NextResponse } from "next/server";
+export const runtime = "edge";
+const price = 17800;
+type Order = {id:string;created_at:string;name:string;phone:string;city:string;address:string;quantity:number;total_cents:number;status:string};
+function clean(value: FormDataEntryValue | null, max: number) { return typeof value === "string" ? value.trim().slice(0,max) : ""; }
+function wantsJson(request: NextRequest) {return request.headers.get("accept")?.includes("application/json") ?? false;}
+export async function GET(request: NextRequest) {
+  if(request.headers.get("oai-authenticated-user-email")?.toLowerCase()!=="simouaamer@gmail.com") return NextResponse.json({error:"Accès refusé"},{status:403});
+  try {
+    const result=await env.DB.prepare("SELECT id, created_at, name, phone, city, address, quantity, total_cents, status FROM orders ORDER BY created_at DESC LIMIT 500").all<Order>();
+    return NextResponse.json({orders:result.results||[]},{headers:{"Cache-Control":"no-store"}});
+  } catch(error) {console.error("Orders load failed",error);return NextResponse.json({error:"Commandes indisponibles"},{status:503});}
+}
+export async function POST(request: NextRequest) {
+  const form = await request.formData();
+  const name=clean(form.get("name"),100), phone=clean(form.get("phone"),25), city=clean(form.get("city"),80), address=clean(form.get("address"),250);
+  const quantity=Number(form.get("quantity"));
+  const language=form.get("language")==="ar"?"ar":"fr";
+  const fieldErrors:Record<string,string>={};
+  if(!name) fieldErrors.name="required";
+  if(!city) fieldErrors.city="required";
+  if(!address) fieldErrors.address="required";
+  const phoneDigits=phone.replace(/\D/g,"");
+  if(phoneDigits.length<8 || phoneDigits.length>15) fieldErrors.phone="invalid";
+  if(!Number.isSafeInteger(quantity) || quantity<1 || quantity>99) fieldErrors.quantity="invalid";
+  if(Object.keys(fieldErrors).length) {
+    if(wantsJson(request)) return NextResponse.json({ok:false,fieldErrors},{status:422});
+    const reason=fieldErrors.phone?"phone":fieldErrors.quantity?"quantity":"details";
+    return NextResponse.redirect(new URL(`/order-error?lang=${language}&reason=${reason}`,request.url),303);
+  }
+  const submittedId=clean(form.get("orderId"),80);
+  const id=/^[a-f0-9-]{36}$/i.test(submittedId)?submittedId:crypto.randomUUID();
+  const now=new Date().toISOString();
+  const discount=(quantity-1)*1780;
+  try {
+    await env.DB.prepare("INSERT OR IGNORE INTO orders (id, created_at, name, phone, city, address, quantity, unit_price_cents, discount_cents, total_cents, language, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(id,now,name,phone,city,address,quantity,price,discount,quantity*price-discount,language,"Nouveau",now).run();
+    if(wantsJson(request)) return NextResponse.json({ok:true,id});
+    return NextResponse.redirect(new URL(`/order-confirmation?lang=${language}`,request.url),303);
+  } catch(error) {
+    console.error("Order storage failed",error);
+    if(wantsJson(request)) return NextResponse.json({ok:false,error:"storage"},{status:503});
+    return NextResponse.redirect(new URL(`/order-error?lang=${language}&reason=storage`,request.url),303);
+  }
+}
