@@ -171,6 +171,12 @@ orderForm.addEventListener('submit', async function (e) {
       orderStatus.scrollIntoView({behavior: 'smooth', block: 'center'});
       return;
     }
+    if (result.error === 'config') {
+      orderStatus.classList.add('is-error');
+      orderStatus.textContent = words('La commande n’a pas été enregistrée : le stockage des commandes n’est pas configuré. Ajoutez BLOB_READ_WRITE_TOKEN dans Vercel, puis redéployez.', 'لم يتم تسجيل الطلب: لم يتم إعداد تخزين الطلبات. أضف BLOB_READ_WRITE_TOKEN في Vercel ثم أعد النشر.');
+      orderStatus.style.display = 'block';
+      return;
+    }
     if (result.fieldErrors) {
       for (const key of orderFields) setFieldError(key, result.fieldErrors[key]);
       const first = Object.keys(result.fieldErrors)[0];

@@ -1,6 +1,7 @@
 import { getOrders, saveOrder } from "@/lib/orders-files";
 import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin-auth";
+import { sendOrderToWhatsApp } from "@/lib/whatsapp";
 export const runtime = "nodejs";
 const price = 17800;
 type Order = {id:string;created_at:string;name:string;phone:string;city:string;address:string;quantity:number;total_cents:number;status:string};
@@ -18,6 +19,11 @@ export async function POST(request: NextRequest) {
   const name=clean(form.get("name"),100), phone=clean(form.get("phone"),25), city=clean(form.get("city"),80), address=clean(form.get("address"),250);
   const quantity=Number(form.get("quantity"));
   const language=form.get("language")==="ar"?"ar":"fr";
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    const payload = { ok: false, error: "config" };
+    if (wantsJson(request)) return NextResponse.json(payload, { status: 503 });
+    return NextResponse.redirect(new URL(`/order-error?lang=${language}&reason=config`, request.url), 303);
+  }
   const fieldErrors:Record<string,string>={};
   if(!name) fieldErrors.name="required";
   if(!city) fieldErrors.city="required";
@@ -35,7 +41,24 @@ export async function POST(request: NextRequest) {
   const now=new Date().toISOString();
   const discount=(quantity-1)*1780;
   try {
-    await saveOrder({id,created_at:now,name,phone,city,address,quantity,unit_price_cents:price,discount_cents:discount,total_cents:quantity*price-discount,language,status:"Nouveau",updated_at:now});
+    const order = {id,created_at:now,name,phone,city,address,quantity,unit_price_cents:price,discount_cents:discount,total_cents:quantity*price-discount,language,status:"Nouveau",updated_at:now};
+    await saveOrder(order);
+    try {
+      await sendOrderToWhatsApp({
+        id: order.id,
+        created_at: order.created_at,
+        name: order.name,
+        phone: order.phone,
+        city: order.city,
+        address: order.address,
+        quantity: order.quantity,
+        total_cents: order.total_cents,
+        language: order.language,
+        status: order.status,
+      });
+    } catch (whatsappError) {
+      console.error("Order WhatsApp notification failed", whatsappError);
+    }
     if(wantsJson(request)) return NextResponse.json({ok:true,id});
     return NextResponse.redirect(new URL(`/order-confirmation?lang=${language}`,request.url),303);
   } catch(error) {

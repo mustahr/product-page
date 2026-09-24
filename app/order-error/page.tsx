@@ -4,6 +4,7 @@ export default async function ErrorPage({searchParams}:{searchParams:Promise<{la
   phone:["Vérifiez le numéro de téléphone : il doit contenir entre 8 et 15 chiffres.","يرجى التحقق من رقم الهاتف: يجب أن يتكون من 8 إلى 15 رقماً."],
   details:["Complétez votre nom, votre ville et votre adresse de livraison.","يرجى إدخال الاسم والمدينة وعنوان التوصيل."],
   quantity:["Choisissez une quantité entre 1 et 99.","يرجى اختيار كمية بين 1 و99."],
+  config:["Le stockage des commandes n’est pas configuré. Ajoutez BLOB_READ_WRITE_TOKEN dans Vercel, puis redéployez.","لم يتم تهيئة تخزين الطلبات. أضف BLOB_READ_WRITE_TOKEN في Vercel ثم أعد النشر."],
   storage:["Un problème technique a empêché l’enregistrement. Aucun achat n’a été confirmé. Veuillez réessayer dans quelques instants.","حدث عطل تقني ولم يتم تسجيل الطلب. يرجى إعادة المحاولة بعد قليل."],
  };
  const message=messages[reason||""]||messages.storage;
