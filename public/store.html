@@ -145,6 +145,8 @@
         <form class="form" id="orderForm" action="/api/orders" method="post">
           <input type="hidden" name="language" id="orderLanguage" value="fr">
           <input type="hidden" name="orderId" id="orderId">
+          <input type="hidden" name="productId" value="charger-voiture-4-en-1">
+          <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label for="contact_website">Ne pas remplir</label><input id="contact_website" name="contact_website" tabindex="-1" autocomplete="off"></div>
           <h3>Informations de livraison</h3>
           <div class="field"><label for="name">Nom complet</label><input id="name" name="name" autocomplete="name" required placeholder="Votre nom complet"></div>
           <div class="field"><label for="phone">Téléphone</label><input id="phone" name="phone" autocomplete="tel" required inputmode="tel" placeholder="06 XX XX XX XX"></div>

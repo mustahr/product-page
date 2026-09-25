@@ -1,58 +1,30 @@
-type OrderPayload = {
-  id: string;
-  created_at: string;
-  name: string;
-  phone: string;
-  city: string;
-  address: string;
-  quantity: number;
-  total_cents: number;
-  language: string;
-  status: string;
-};
+import type { Order } from "./order-store";
 
-function normalizeWhatsAppNumber(value: string) {
-  const digits = value.replace(/\D/g, "");
-  if (!digits) return value.trim();
-  return `whatsapp:+${digits}`;
-}
-
-export async function sendOrderToWhatsApp(order: OrderPayload): Promise<boolean> {
-  const to = process.env.WHATSAPP_TO;
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_WHATSAPP_NUMBER;
-
-  if (!to || !accountSid || !authToken || !from) {
-    console.warn("WhatsApp order notification is not configured.");
-    return false;
+export async function notifyOwner(order: Order, send: typeof fetch = fetch): Promise<string> {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const senderId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const recipient = (process.env.WHATSAPP_RECIPIENT_NUMBER || "").replace(/\D/g, "");
+  const templateName = process.env.WHATSAPP_TEMPLATE_NAME || "autocharge_new_order";
+  const language = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "fr";
+  const version = process.env.WHATSAPP_GRAPH_VERSION || "v24.0";
+  if (!token || !/^\d+$/.test(senderId || "") || !/^\d{8,15}$/.test(recipient) || !/^v\d+\.0$/.test(version)) {
+    throw new Error("WhatsApp configuration incomplete");
   }
-
-  const { default: twilio } = await import("twilio");
-  const client = twilio(accountSid, authToken);
-
-  const message = [
-    "Nouvelle commande",
-    `ID: ${order.id}`,
-    `Client: ${order.name}`,
-    `Téléphone: ${order.phone}`,
-    `Ville: ${order.city}`,
-    `Adresse: ${order.address}`,
-    `Quantité: ${order.quantity}`,
-    `Total: ${(order.total_cents / 100).toFixed(2)} DH`,
-    `Langue: ${order.language === "ar" ? "AR" : "FR"}`,
-    `Statut: ${order.status}`,
-  ].join("\n");
-
-  try {
-    const result = await client.messages.create({
-      from: normalizeWhatsAppNumber(from),
-      to: normalizeWhatsAppNumber(to),
-      body: message,
-    });
-    return Boolean(result.sid);
-  } catch (error) {
-    console.error("Failed to send WhatsApp notification", error);
-    return false;
+  const date = new Intl.DateTimeFormat("fr-MA", { dateStyle: "long", timeZone: "Africa/Casablanca" }).format(new Date(order.createdAt));
+  const values = [order.reference, order.productName, String(order.quantity), `${(order.unitPriceCents / 100).toFixed(2)} DH`, `${(order.discountCents / 100).toFixed(2)} DH`, `${(order.totalCents / 100).toFixed(2)} DH`, order.name, order.normalizedPhone, order.city, order.address, date];
+  const response = await send(`https://graph.facebook.com/${version}/${senderId}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messaging_product: "whatsapp", to: recipient, type: "template",
+      template: { name: templateName, language: { code: language }, components: [{ type: "body", parameters: values.map(text => ({ type: "text", text })) }] },
+    }),
+    signal: AbortSignal.timeout(12000), cache: "no-store",
+  });
+  const data = await response.json() as { messages?: { id: string }[]; error?: { code?: number } };
+  if (!response.ok || !data.messages?.[0]?.id) {
+    console.error("WhatsApp notification rejected", { status: response.status, code: data.error?.code });
+    throw new Error("WhatsApp notification rejected");
   }
+  return data.messages[0].id;
 }

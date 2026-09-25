@@ -121,7 +121,7 @@ const submitButton = orderForm.querySelector('button[type="submit"]');
 const orderFields = ['name', 'phone', 'city', 'address', 'quantity'];
 function fieldMessage(key, issue) {
   if (issue === 'required') return words('Ce champ est obligatoire.', 'هذا الحقل مطلوب.');
-  if (key === 'phone') return words('Saisissez un numéro de téléphone de 8 à 15 chiffres.', 'أدخل رقم هاتف من 8 إلى 15 رقماً.');
+  if (key === 'phone') return words('Saisissez un numéro marocain commençant par 06 ou 07, ou +2126 / +2127.', 'أدخل رقماً مغربياً يبدأ بـ 06 أو 07 أو ‎+2126 / ‎+2127.');
   return words('Choisissez une quantité entre 1 et 99.', 'اختر كمية بين 1 و99.');
 }
 function setFieldError(key, issue) {
@@ -143,8 +143,8 @@ for (const key of orderFields) {
 function validateOrder() {
   const errors = {};
   for (const key of ['name', 'city', 'address']) if (!document.getElementById(key).value.trim()) errors[key] = 'required';
-  const digits = document.getElementById('phone').value.replace(/\D/g, '');
-  if (digits.length < 8 || digits.length > 15) errors.phone = 'invalid';
+  const phone = document.getElementById('phone').value.replace(/[\s().-]/g, '');
+  if (!/^(?:0[67]\d{8}|\+212[67]\d{8}|212[67]\d{8})$/.test(phone)) errors.phone = 'invalid';
   const quantity = Number(quantityInput.value);
   if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 99) errors.quantity = 'invalid';
   for (const key of orderFields) setFieldError(key, errors[key]);
@@ -157,24 +157,18 @@ orderForm.addEventListener('submit', async function (e) {
   if (!validateOrder()) return;
   document.getElementById('orderLanguage').value = currentLanguage;
   const idField = document.getElementById('orderId');
-  if (!idField.value) idField.value = window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+  if (!idField.value && window.crypto && crypto.randomUUID) idField.value = crypto.randomUUID();
   submitButton.disabled = true;
-  submitButton.firstChild.nodeValue = words('Enregistrement... ', 'جارٍ تسجيل الطلب... ');
+  submitButton.firstChild.nodeValue = words('Envoi de la commande... ', 'جارٍ إرسال الطلب... ');
   try {
     const response = await fetch(ORDER_URL, {method: 'POST', body: new FormData(orderForm), headers: {Accept: 'application/json'}});
     const result = await response.json();
     if (response.ok && result.ok) {
       orderStatus.classList.remove('is-error');
-      orderStatus.textContent = words('Nous avons reçu votre commande. Notre équipe vous contactera bientôt pour confirmer la livraison.', 'توصلنا بطلبك. سيتواصل معك فريقنا قريباً لتأكيد التوصيل.');
+      orderStatus.textContent = words(`Commande confirmée ! Votre commande #${result.reference} a bien été reçue. Nous allons vous contacter pour la confirmer.`, `تم تأكيد الطلب! توصلنا بطلبك رقم #${result.reference}. سنتواصل معك لتأكيده.`);
       orderForm.classList.add('is-complete');
       orderStatus.style.display = 'block';
       orderStatus.scrollIntoView({behavior: 'smooth', block: 'center'});
-      return;
-    }
-    if (result.error === 'config') {
-      orderStatus.classList.add('is-error');
-      orderStatus.textContent = words('La commande n’a pas été enregistrée : le stockage des commandes n’est pas configuré. Ajoutez BLOB_READ_WRITE_TOKEN dans Vercel, puis redéployez.', 'لم يتم تسجيل الطلب: لم يتم إعداد تخزين الطلبات. أضف BLOB_READ_WRITE_TOKEN في Vercel ثم أعد النشر.');
-      orderStatus.style.display = 'block';
       return;
     }
     if (result.fieldErrors) {
@@ -184,7 +178,7 @@ orderForm.addEventListener('submit', async function (e) {
     } else throw new Error('storage');
   } catch (_) {
     orderStatus.classList.add('is-error');
-    orderStatus.textContent = words('La commande n’a pas été enregistrée. Réessayez dans un instant.', 'لم يتم تسجيل الطلب. يرجى المحاولة بعد قليل.');
+    orderStatus.textContent = words('La commande n’a pas pu être transmise. Réessayez dans un instant.', 'تعذر إرسال الطلب. يرجى المحاولة بعد قليل.');
     orderStatus.style.display = 'block';
   } finally {
     submitButton.disabled = false;
