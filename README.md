@@ -1,48 +1,34 @@
-# AutoCharge Maroc — order integration
+# AutoCharge Maroc — Next.js project
 
-This is the existing Next.js product page with its design, media, pricing, bilingual form, and responsive layout preserved. Customers order at `/store.html` without opening WhatsApp or needing the WhatsApp app. The server stores each order as a private JSON file, then asks the official WhatsApp Cloud API to notify the store owner. The page confirms only after Meta accepts that notification.
+This is the source for the Chargeur Voiture 4-en-1 Maroc site. It uses the Next.js 16 App Router, React, TypeScript, and Cloudflare D1 for orders. Vinext adapts the Next.js app to the Cloudflare Workers environment used by Sites.
 
-## Existing product and price
+## Pages and order flow
 
-The site sells one **Chargeur voiture 4-en-1 avec câbles rétractables** for **178 DH**. Every additional unit has a 10% discount (17.80 DH). There are no selectable variants. The API calculates the total from these server-side values; it does not accept browser-supplied prices or unknown products/variants.
+- `/store.html` is the customer storefront and order form.
+- `/dashboard` is the owner's order dashboard. It requires Sign in with ChatGPT and the configured owner email.
+- `/api/orders` accepts orders and supplies dashboard updates.
+- `/api/orders/status` changes the order status.
+- `drizzle/0000_strong_gertrude_yorkes.sql` contains the initial orders table migration.
 
-## Set up Vercel storage
+## Run locally
 
-The current project has no SQL database or dashboard. The smallest durable addition is a **Private Vercel Blob** store. In the Vercel project, open **Storage → Create → Blob**, select **Private**, and connect it to the Production environment. Vercel provides `BLOB_READ_WRITE_TOKEN` automatically. Orders are private `orders/<uuid>.json` files containing customer details, price, `orderStatus`, and `notificationStatus`. Do not use a Public Blob store. Keep this store connected across deployments. The old Sites orders are not migrated.
+Use Node.js 22.13 or newer, then run `npm ci` and `npm run dev`. For a production build, run `npm run build`. The development and build scripts use Vinext so the Next.js routes can access the Cloudflare D1 binding. A local database must be initialized with the SQL migration to exercise order submission and the dashboard. The public storefront remains available without it.
 
-## Set up official WhatsApp Cloud API
+The hosted site requires the Sites D1 binding `DB` and its existing authentication headers. Deploying this ZIP to an ordinary Node.js Next.js server requires replacing the Cloudflare database and authentication adapters; copying the files to another host alone does not provide its order database.
 
-In [Meta for Developers](https://developers.facebook.com/apps/), create/select a Business app with WhatsApp and open **WhatsApp → API Setup**. Copy the **Phone number ID** into `WHATSAPP_PHONE_NUMBER_ID`. A temporary access token there can be used for a short test; for production, create a **system user access token** in **Meta Business Settings → Users → System users**, give that user access to the app and WhatsApp Business Account and the `whatsapp_business_messaging` permission, and put the token into `WHATSAPP_ACCESS_TOKEN`. Never commit it.
+## WhatsApp order notifications
 
-Set `WHATSAPP_RECIPIENT_NUMBER` to the destination WhatsApp number with country code, digits only, for example `2126...`. The Cloud API sender number is identified by `WHATSAPP_PHONE_NUMBER_ID`; the recipient is the phone that should receive the alert. Test the sender and recipient combination in Meta before launch. The WABA ID identifies the WhatsApp Business Account but is not needed for this send endpoint.
+After a new order is saved, the server can send the approved 11-variable template to the shop owner's WhatsApp number. Duplicate submissions with the same order ID do not send another message. A WhatsApp failure is logged and does not erase an order or change the customer's confirmation. Configure these hosted Site runtime values:
 
-In **WhatsApp Manager → Message templates**, create and submit a template named `autocharge_new_order`, language `fr`, with exactly these 11 body variables, in order (choose the category Meta approves for this use):
+- `WHATSAPP_ACCESS_TOKEN`: Meta Cloud API access token, stored as a secret.
+- `WHATSAPP_PHONE_NUMBER_ID`: the sending phone number ID in WhatsApp Manager (not the visible telephone number).
+- `WHATSAPP_RECIPIENT_NUMBER`: owner's WhatsApp number in international format, for example `2126...`.
+- `WHATSAPP_TEMPLATE_NAME`: exact approved template name.
+- `WHATSAPP_TEMPLATE_LANGUAGE`: approved language code; defaults to `fr_MA`.
+- `WHATSAPP_GRAPH_API_VERSION`: optional API version; defaults to `v23.0`.
 
-```text
-🛍️ Nouvelle commande AutoCharge Maroc
-Référence : {{1}}
-Produit : {{2}}
-Quantité : {{3}}
-Prix unitaire : {{4}}
-Réduction : {{5}}
-Total : {{6}}
-Client : {{7}}
-Téléphone : {{8}}
-Ville : {{9}}
-Adresse : {{10}}
-Date : {{11}}
-```
+The 11 body values are sent in this order: order reference, product name, quantity, unit price, discount, total, customer name, customer phone, city, address, order date/time (Casablanca). Verify this sequence against the exact approved template before enabling the four required runtime values. No token or recipient number belongs in source control or browser code.
 
-Wait until the template is approved. If Meta approves a different name or language code, configure `WHATSAPP_TEMPLATE_NAME` and `WHATSAPP_TEMPLATE_LANGUAGE` to match exactly. The API always sends an approved template, even outside the customer-service window.
+If Meta approves `autocharge_order_alert_v2` as a Utility template, set `WHATSAPP_TEMPLATE_NAME` to that name. Its three body values are order reference, customer name, and total. The dashboard retains the full order details. Until approval, the current Marketing template may be accepted by the API but blocked at delivery with Meta error 131049.
 
-## Environment variables
-
-Copy `.env.example` for local development, replacing placeholders privately. In **Vercel → Project → Settings → Environment Variables**, set `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_RECIPIENT_NUMBER`, `WHATSAPP_TEMPLATE_NAME`, and `WHATSAPP_TEMPLATE_LANGUAGE` for Production. Connecting the Private Blob store supplies `BLOB_READ_WRITE_TOKEN`. `WHATSAPP_GRAPH_VERSION` defaults to `v24.0`. Set a random `ORDER_RETRY_SECRET` of at least 32 characters if you want to use the retry endpoint. Redeploy after changing variables.
-
-## Test and operate
-
-Run `npm ci`, `node --experimental-strip-types --test tests/order.test.mjs`, and `npm run build`. Locally, `npm run dev` needs a Private Blob token and real Meta credentials for a delivery test. On Vercel, submit one test order at `/store.html`; verify the reference appears on the page and the message arrives at the destination WhatsApp. A Meta API acceptance ID is not proof of final delivery; check WhatsApp itself. If sending fails, the order stays in Private Blob with `notificationStatus: "failed"`, the customer sees an error, and submitting the same form again safely retries it.
-
-For an operator retry, use `POST /api/orders/retry` with a JSON body `{"id":"<order UUID>"}` and `Authorization: Bearer <ORDER_RETRY_SECRET>`. Find failed order IDs in the Private Blob store's `orders/` files. The endpoint has no public UI. A record stuck in `sending` should be checked against Meta delivery status before manual intervention, to avoid sending a duplicate alert.
-
-The form has same-origin request checks, server-side validation, a hidden bot field, and a small per-instance request limit. For higher traffic, also configure Vercel's edge rate limiting/WAF. Do not put real credentials in GitHub. `.env` files are ignored; `.env.example` contains placeholders only.
+Keep `public/assets` together with `public/store.html` when moving or deploying the project. The project is configured for its existing Sites deployment by `.openai/hosting.json`.

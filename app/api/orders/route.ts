@@ -1,42 +1,67 @@
+import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
-import { validateOrder } from "@/lib/order-logic";
-import { submitOrder } from "@/lib/order-service";
-export const runtime = "nodejs";
-
-const attempts = new Map<string, { count: number; expires: number }>();
-function rateLimited(request: NextRequest) {
-  const now = Date.now();
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (attempts.size > 2000) for (const [key, value] of attempts) if (value.expires < now) attempts.delete(key);
-  const entry = attempts.get(ip);
-  if (!entry || entry.expires < now) { attempts.set(ip, { count: 1, expires: now + 15 * 60_000 }); return false; }
-  entry.count += 1;
-  return entry.count > 5;
+export const runtime = "edge";
+const price = 17800;
+async function notifyOwner(order: {id:string;name:string;phone:string;city:string;address:string;quantity:number;discount:number;total:number;createdAt:string}) {
+  const token=env.WHATSAPP_ACCESS_TOKEN, phoneId=env.WHATSAPP_PHONE_NUMBER_ID,
+    recipient=env.WHATSAPP_RECIPIENT_NUMBER, template=env.WHATSAPP_TEMPLATE_NAME;
+  if(!token || !phoneId || !recipient || !template) return;
+  const detailedValues=[order.id.slice(0,8).toUpperCase(),"Chargeur voiture 4-en-1",String(order.quantity),"178 DH",
+    `${(order.discount/100).toFixed(2)} DH`,`${(order.total/100).toFixed(2)} DH`,order.name,order.phone,
+    order.city,order.address,new Date(order.createdAt).toLocaleString("fr-MA",{timeZone:"Africa/Casablanca",dateStyle:"short",timeStyle:"short"})];
+  const values=template==="autocharge_order_alert_v2"
+    ? [detailedValues[0],order.name,detailedValues[5]] : detailedValues;
+  try {
+    const apiVersion=env.WHATSAPP_GRAPH_API_VERSION || "v23.0";
+    const response=await fetch(`https://graph.facebook.com/${apiVersion}/${encodeURIComponent(phoneId)}/messages`,{
+      method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},
+      body:JSON.stringify({messaging_product:"whatsapp",to:recipient.replace(/\D/g,""),type:"template",
+        template:{name:template,language:{code:env.WHATSAPP_TEMPLATE_LANGUAGE || "fr_MA"},
+          components:[{type:"body",parameters:values.map(text=>({type:"text",text}))}]}})
+    });
+    if(!response.ok) console.error("WhatsApp notification failed",response.status,await response.text());
+  } catch(error) {console.error("WhatsApp notification failed",error);}
 }
-function wantsJson(request: NextRequest) { return request.headers.get("accept")?.includes("application/json") ?? false; }
-function failure(request: NextRequest, language: string, error: string, status: number, fieldErrors?: Record<string, string>) {
-  if (wantsJson(request)) return NextResponse.json({ ok: false, error, ...(fieldErrors ? { fieldErrors } : {}) }, { status, headers: { "Cache-Control": "no-store" } });
-  const reason = fieldErrors?.phone ? "phone" : fieldErrors?.quantity ? "quantity" : fieldErrors ? "details" : "storage";
-  return NextResponse.redirect(new URL(`/order-error?lang=${language}&reason=${reason}`, request.url), 303);
+type Order = {id:string;created_at:string;name:string;phone:string;city:string;address:string;quantity:number;total_cents:number;status:string};
+function clean(value: FormDataEntryValue | null, max: number) { return typeof value === "string" ? value.trim().slice(0,max) : ""; }
+function wantsJson(request: NextRequest) {return request.headers.get("accept")?.includes("application/json") ?? false;}
+export async function GET(request: NextRequest) {
+  if(request.headers.get("oai-authenticated-user-email")?.toLowerCase()!=="simouaamer@gmail.com") return NextResponse.json({error:"Accès refusé"},{status:403});
+  try {
+    const result=await env.DB.prepare("SELECT id, created_at, name, phone, city, address, quantity, total_cents, status FROM orders ORDER BY created_at DESC LIMIT 500").all<Order>();
+    return NextResponse.json({orders:result.results||[]},{headers:{"Cache-Control":"no-store"}});
+  } catch(error) {console.error("Orders load failed",error);return NextResponse.json({error:"Commandes indisponibles"},{status:503});}
 }
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin) return failure(request, "fr", "forbidden", 403);
-  if (Number(request.headers.get("content-length") || 0) > 8192) return failure(request, "fr", "too_large", 413);
-  let form: FormData;
-  try { form = await request.formData(); }
-  catch { return failure(request, "fr", "invalid_form", 400); }
-  const language = form.get("language") === "ar" ? "ar" : "fr";
-  if (form.get("contact_website")) return failure(request, language, "invalid_form", 422);
-  const { input, fieldErrors } = validateOrder(form);
-  if (!input) return failure(request, language, "validation", 422, fieldErrors);
-  if (rateLimited(request)) return failure(request, language, "rate_limited", 429);
+  const form = await request.formData();
+  const name=clean(form.get("name"),100), phone=clean(form.get("phone"),25), city=clean(form.get("city"),80), address=clean(form.get("address"),250);
+  const quantity=Number(form.get("quantity"));
+  const language=form.get("language")==="ar"?"ar":"fr";
+  const fieldErrors:Record<string,string>={};
+  if(!name) fieldErrors.name="required";
+  if(!city) fieldErrors.city="required";
+  if(!address) fieldErrors.address="required";
+  const phoneDigits=phone.replace(/\D/g,"");
+  if(phoneDigits.length<8 || phoneDigits.length>15) fieldErrors.phone="invalid";
+  if(!Number.isSafeInteger(quantity) || quantity<1 || quantity>99) fieldErrors.quantity="invalid";
+  if(Object.keys(fieldErrors).length) {
+    if(wantsJson(request)) return NextResponse.json({ok:false,fieldErrors},{status:422});
+    const reason=fieldErrors.phone?"phone":fieldErrors.quantity?"quantity":"details";
+    return NextResponse.redirect(new URL(`/order-error?lang=${language}&reason=${reason}`,request.url),303);
+  }
+  const submittedId=clean(form.get("orderId"),80);
+  const id=/^[a-f0-9-]{36}$/i.test(submittedId)?submittedId:crypto.randomUUID();
+  const now=new Date().toISOString();
+  const discount=(quantity-1)*1780;
   try {
-    const order = await submitOrder(input);
-    if (wantsJson(request)) return NextResponse.json({ ok: true, id: order.id, reference: order.reference }, { headers: { "Cache-Control": "no-store" } });
-    return NextResponse.redirect(new URL(`/order-confirmation?lang=${language}&order=${encodeURIComponent(order.reference)}`, request.url), 303);
-  } catch (error) {
-    console.error("Order submission failed", error instanceof Error ? error.name : "unknown");
-    return failure(request, language, "notification", 503);
+    const result=await env.DB.prepare("INSERT OR IGNORE INTO orders (id, created_at, name, phone, city, address, quantity, unit_price_cents, discount_cents, total_cents, language, status, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(id,now,name,phone,city,address,quantity,price,discount,quantity*price-discount,language,"Nouveau",now).run();
+    if(result.meta.changes) await notifyOwner({id,name,phone,city,address,quantity,discount,total:quantity*price-discount,createdAt:now});
+    if(wantsJson(request)) return NextResponse.json({ok:true,id});
+    return NextResponse.redirect(new URL(`/order-confirmation?lang=${language}`,request.url),303);
+  } catch(error) {
+    console.error("Order storage failed",error);
+    if(wantsJson(request)) return NextResponse.json({ok:false,error:"storage"},{status:503});
+    return NextResponse.redirect(new URL(`/order-error?lang=${language}&reason=storage`,request.url),303);
   }
 }

@@ -1,4 +1,4 @@
-const ORDER_URL = '/api/orders';
+const WHATSAPP_ORDER_NUMBER = '212608731353';
 const UNIT_PRICE = 178;
 const UNIT_CENTS = UNIT_PRICE * 100;
 const ar = {
@@ -42,8 +42,8 @@ const ar = {
   'Votre nom complet': 'اسمك الكامل', 'Votre ville': 'مدينتك', 'Quartier, rue, résidence...': 'الحي، الشارع، الإقامة...',
   'Diminuer la quantité': 'تقليل الكمية', 'Augmenter la quantité': 'زيادة الكمية',
   'Le premier à 178 DH, puis −10 % sur chaque chargeur supplémentaire.': 'الشاحن الأول بـ178 درهماً، ثم خصم 10٪ على كل شاحن إضافي.',
-  'Total : 178 DH': 'المجموع: 178 درهم', 'Confirmer ma commande': 'تأكيد طلبي',
-  'Après l’enregistrement, vous verrez une confirmation. Notre équipe vous contactera bientôt.': 'بعد تسجيل طلبك ستظهر رسالة تأكيد. سيتواصل معك فريقنا قريباً.',
+  'Total : 178 DH': 'المجموع: 178 درهم', 'Envoyer ma commande sur WhatsApp': 'إرسال طلبي عبر واتساب',
+  'WhatsApp s’ouvrira avec votre commande. Appuyez sur Envoyer dans WhatsApp pour la confirmer.': 'سيفتح واتساب مع تفاصيل طلبك. اضغط إرسال في واتساب لتأكيده.',
   'Questions fréquentes': 'الأسئلة الشائعة', 'Avant de commander': 'قبل الطلب',
   'Quels connecteurs sont inclus ?': 'ما الوصلات المتوفرة؟',
   'Le chargeur comprend deux câbles rétractables : un Type-C et un connecteur compatible iPhone, ainsi que des ports USB-A et USB-C.': 'يضم الشاحن كابلين قابلين للسحب: Type-C وموصلاً متوافقاً مع iPhone، إضافة إلى منفذي USB-A وUSB-C.',
@@ -90,8 +90,10 @@ function updateQuantity() {
   document.getElementById('selectedQuantity').textContent = words('Quantité sélectionnée : ', 'الكمية المختارة: ') + quantity;
   const { discount, total } = prices(quantity);
   const discountLine = document.getElementById('discountLine');
+  const discountWasHidden = discountLine.hidden;
   discountLine.hidden = discount === 0;
   discountLine.textContent = words('Réduction sur les articles supplémentaires : −', 'خصم الشواحن الإضافية: −') + money(discount);
+  if (discountWasHidden && discount > 0) playOnce(discountLine, 'is-revealed', 550);
   document.getElementById('orderTotal').textContent = words('Total : ', 'المجموع: ') + money(total);
 }
 function setLanguage(lang) {
@@ -108,6 +110,43 @@ function setLanguage(lang) {
 }
 document.querySelectorAll('[data-lang]').forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.lang)));
 quantityInput.addEventListener('input', updateQuantity);
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+function playOnce(element, className, duration) {
+  if (reducedMotion.matches) return;
+  element.classList.remove(className);
+  void element.offsetWidth;
+  element.classList.add(className);
+  window.setTimeout(() => element.classList.remove(className), duration);
+}
+quantityInput.addEventListener('input', () => {
+  if (!quantityInput.validity.valid) return;
+  playOnce(document.getElementById('orderTotal'), 'is-updated', 400);
+  playOnce(document.querySelector('.summary-price'), 'is-updated', 400);
+});
+for (const link of document.querySelectorAll('a[href="#commande"]')) {
+  link.addEventListener('click', () => window.setTimeout(() => playOnce(document.querySelector('.order-wrap'), 'is-highlighted', 1700), 250));
+}
+if ('IntersectionObserver' in window) {
+  const heroButton = document.querySelector('.hero a[href="#commande"]');
+  const orderSection = document.getElementById('commande');
+  const stickyBar = document.querySelector('.sticky');
+  const stickyLink = stickyBar.querySelector('a');
+  let heroVisible = true;
+  let orderVisible = false;
+  document.body.classList.add('scroll-cta-ready');
+  stickyLink.tabIndex = -1;
+  const stickyObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (entry.target === heroButton) heroVisible = entry.isIntersecting;
+      if (entry.target === orderSection) orderVisible = entry.isIntersecting;
+    }
+    const show = !heroVisible && !orderVisible;
+    stickyBar.classList.toggle('is-visible', show);
+    stickyLink.tabIndex = show ? 0 : -1;
+  });
+  stickyObserver.observe(heroButton);
+  stickyObserver.observe(orderSection);
+}
 function changeQuantity(amount) {
   const current = quantityInput.validity.valid ? Number(quantityInput.value) : 1;
   quantityInput.value = Math.max(1, current + amount);
@@ -121,7 +160,7 @@ const submitButton = orderForm.querySelector('button[type="submit"]');
 const orderFields = ['name', 'phone', 'city', 'address', 'quantity'];
 function fieldMessage(key, issue) {
   if (issue === 'required') return words('Ce champ est obligatoire.', 'هذا الحقل مطلوب.');
-  if (key === 'phone') return words('Saisissez un numéro marocain commençant par 06 ou 07, ou +2126 / +2127.', 'أدخل رقماً مغربياً يبدأ بـ 06 أو 07 أو ‎+2126 / ‎+2127.');
+  if (key === 'phone') return words('Saisissez un numéro de téléphone de 8 à 15 chiffres.', 'أدخل رقم هاتف من 8 إلى 15 رقماً.');
   return words('Choisissez une quantité entre 1 et 99.', 'اختر كمية بين 1 و99.');
 }
 function setFieldError(key, issue) {
@@ -143,47 +182,45 @@ for (const key of orderFields) {
 function validateOrder() {
   const errors = {};
   for (const key of ['name', 'city', 'address']) if (!document.getElementById(key).value.trim()) errors[key] = 'required';
-  const phone = document.getElementById('phone').value.replace(/[\s().-]/g, '');
-  if (!/^(?:0[67]\d{8}|\+212[67]\d{8}|212[67]\d{8})$/.test(phone)) errors.phone = 'invalid';
+  const digits = document.getElementById('phone').value.replace(/\D/g, '');
+  if (digits.length < 8 || digits.length > 15) errors.phone = 'invalid';
   const quantity = Number(quantityInput.value);
   if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 99) errors.quantity = 'invalid';
   for (const key of orderFields) setFieldError(key, errors[key]);
   if (Object.keys(errors).length) document.getElementById(Object.keys(errors)[0]).focus();
   return Object.keys(errors).length === 0;
 }
-orderForm.addEventListener('submit', async function (e) {
+orderForm.addEventListener('submit', function (e) {
   e.preventDefault();
   orderStatus.style.display = 'none';
+  orderStatus.classList.remove('is-visible');
   if (!validateOrder()) return;
-  document.getElementById('orderLanguage').value = currentLanguage;
   const idField = document.getElementById('orderId');
-  if (!idField.value && window.crypto && crypto.randomUUID) idField.value = crypto.randomUUID();
-  submitButton.disabled = true;
-  submitButton.firstChild.nodeValue = words('Envoi de la commande... ', 'جارٍ إرسال الطلب... ');
-  try {
-    const response = await fetch(ORDER_URL, {method: 'POST', body: new FormData(orderForm), headers: {Accept: 'application/json'}});
-    const result = await response.json();
-    if (response.ok && result.ok) {
-      orderStatus.classList.remove('is-error');
-      orderStatus.textContent = words(`Commande confirmée ! Votre commande #${result.reference} a bien été reçue. Nous allons vous contacter pour la confirmer.`, `تم تأكيد الطلب! توصلنا بطلبك رقم #${result.reference}. سنتواصل معك لتأكيده.`);
-      orderForm.classList.add('is-complete');
-      orderStatus.style.display = 'block';
-      orderStatus.scrollIntoView({behavior: 'smooth', block: 'center'});
-      return;
-    }
-    if (result.fieldErrors) {
-      for (const key of orderFields) setFieldError(key, result.fieldErrors[key]);
-      const first = Object.keys(result.fieldErrors)[0];
-      if (first) document.getElementById(first).focus();
-    } else throw new Error('storage');
-  } catch (_) {
-    orderStatus.classList.add('is-error');
-    orderStatus.textContent = words('La commande n’a pas pu être transmise. Réessayez dans un instant.', 'تعذر إرسال الطلب. يرجى المحاولة بعد قليل.');
-    orderStatus.style.display = 'block';
-  } finally {
-    submitButton.disabled = false;
-    submitButton.firstChild.nodeValue = words('Confirmer ma commande ', 'تأكيد طلبي ');
-  }
+  if (!idField.value) idField.value = window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+  const value = key => document.getElementById(key).value.trim();
+  const quantity = Number(quantityInput.value);
+  const { discount, total } = prices(quantity);
+  const dirhams = cents => (cents / 100).toFixed(cents % 100 ? 2 : 0).replace('.', ',') + ' DH';
+  const message = [
+    '🛍️ Nouvelle commande AutoCharge Maroc',
+    `Référence : ${idField.value}`,
+    'Produit : Chargeur voiture 4-en-1',
+    `Quantité : ${quantity}`,
+    `Prix unitaire : ${UNIT_PRICE} DH`,
+    `Réduction : ${dirhams(discount)}`,
+    `Total : ${dirhams(total)}`,
+    `Client : ${value('name')}`,
+    `Téléphone : ${value('phone')}`,
+    `Ville : ${value('city')}`,
+    `Adresse : ${value('address')}`,
+    'Paiement à la livraison · Livraison gratuite'
+  ].join('\n');
+  const url = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(message)}`;
+  orderStatus.classList.remove('is-error');
+  orderStatus.textContent = words('WhatsApp s’ouvre. Appuyez sur Envoyer pour nous transmettre votre commande.', 'سيُفتح واتساب. اضغط إرسال لإرسال طلبك إلينا.');
+  orderStatus.style.display = 'block';
+  orderStatus.classList.add('is-visible');
+  window.location.assign(url);
 });
 let savedLanguage = 'fr';
 try { savedLanguage = localStorage.getItem('autocharge-language') || 'fr'; } catch (_) {}

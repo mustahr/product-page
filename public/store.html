@@ -16,6 +16,9 @@
     .nav{height:72px;display:flex;align-items:center;justify-content:space-between;max-width:1180px;margin:auto;padding:0 22px;border-bottom:1px solid #eef1f6}.logo{display:flex;align-items:center;gap:.7rem;font-weight:800;font-size:1.08rem}.logo-mark{width:38px;height:38px;border-radius:12px;background:var(--navy);display:grid;place-items:center;color:var(--yellow);font-size:1.35rem}.nav-link{font-weight:700;color:#344257;font-size:.92rem}
     .hero{background:radial-gradient(circle at 90% 15%,#e7efff 0,transparent 35%),linear-gradient(135deg,#f8fbff 0,#eef3fb 100%);padding:54px 22px 64px}.hero-grid{max-width:1180px;margin:auto;display:grid;grid-template-columns:1.02fr .98fr;gap:64px;align-items:center}.eyebrow{display:inline-flex;align-items:center;gap:.5rem;background:#e7f6ef;color:#08764a;border:1px solid #bce5d1;border-radius:999px;padding:.42rem .75rem;font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}.hero h1{font-size:clamp(2.35rem,5vw,4.7rem);line-height:1.02;letter-spacing:-.055em;margin:20px 0 18px;max-width:720px}.hero h1 em{font-style:normal;color:var(--blue)}.sub{font-size:1.08rem;color:#4b5d74;max-width:620px;margin:0 0 24px}.benefit-list{display:grid;gap:10px;margin:0 0 28px;padding:0;list-style:none}.benefit-list li{display:flex;gap:10px;align-items:flex-start;font-weight:700}.check{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#dff5ea;color:#08764a;flex:0 0 auto;font-size:.8rem}.price-row{display:flex;align-items:end;gap:12px;margin:8px 0 24px}.price{font-size:2.7rem;line-height:1;font-weight:800}.old-price{color:#8b96a8;text-decoration:line-through;font-weight:700}.save{color:#08764a;background:#dff5ea;padding:.25rem .52rem;border-radius:6px;font-size:.75rem;font-weight:800}.cta{display:inline-flex;align-items:center;justify-content:center;gap:.65rem;background:var(--yellow);color:#111827;border:0;border-radius:14px;padding:1rem 1.35rem;font-weight:800;box-shadow:0 12px 28px rgba(227,164,0,.25);cursor:pointer;transition:.2s transform,.2s box-shadow}.cta:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(227,164,0,.32)}.microcopy{display:flex;gap:18px;flex-wrap:wrap;color:#536278;font-size:.82rem;font-weight:700;margin-top:16px}
     .visual{position:relative}.product-card{position:relative;background:#fff;border:1px solid #e0e7f1;border-radius:28px;padding:24px;box-shadow:var(--shadow);overflow:hidden}.product-card:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:#dce7ff;filter:blur(2px);right:-80px;bottom:-90px;z-index:0}.product-card img{width:100%;height:470px;object-fit:cover;border-radius:19px;position:relative;z-index:1}.floating{position:absolute;z-index:3;background:#fff;border:1px solid #e1e7f0;box-shadow:0 12px 35px rgba(14,30,57,.16);border-radius:14px;padding:12px 14px;font-weight:800;font-size:.83rem}.float-a{left:-28px;top:45px}.float-b{right:-22px;bottom:42px}.floating strong{display:block;color:var(--blue);font-size:1.1rem}
+    /* A small charging circuit stays inside the image frame and never covers the product. */
+    .charge-fx{position:absolute;inset:24px;z-index:2;border-radius:19px;overflow:hidden;pointer-events:none;isolation:isolate}.charge-fx:before{content:"";position:absolute;inset:0;border-radius:inherit;border:2px solid rgba(75,151,255,.26);box-shadow:inset 0 0 22px rgba(25,112,255,.12);animation:charge-breathe 4.8s ease-in-out infinite}.charge-fx:after{content:"";position:absolute;left:-40%;bottom:0;width:40%;height:3px;background:linear-gradient(90deg,transparent,#61ceff 55%,#fff,transparent);box-shadow:0 0 12px #3ca8ff;animation:charge-travel 4.8s ease-in-out infinite}.charge-spark{position:absolute;color:#d7f7ff;text-shadow:0 0 8px #178eff,0 0 18px #178eff;font-size:20px;line-height:1;animation:spark-glow 4.8s ease-in-out infinite}.charge-spark.one{top:12%;right:8%}.charge-spark.two{bottom:17%;left:7%;font-size:14px;animation-delay:1.3s}.charge-spark.three{top:42%;left:5%;font-size:11px;animation-delay:2.6s}.charge-meter{position:absolute;right:12px;bottom:12px;width:40px;height:19px;border:1.5px solid rgba(255,255,255,.9);border-radius:5px;background:rgba(7,22,47,.42);box-shadow:0 0 12px rgba(52,158,255,.45);padding:3px;display:flex;align-items:center;gap:2px}.charge-meter:after{content:"";position:absolute;right:-4px;width:2px;height:7px;border-radius:0 2px 2px 0;background:#fff}.charge-meter i{display:block;flex:1;height:100%;background:#7de2ff;box-shadow:0 0 5px #7de2ff;animation:charge-cell 4.8s linear infinite}.charge-meter i:nth-child(2){animation-delay:.45s}.charge-meter i:nth-child(3){animation-delay:.9s}.charge-meter i:nth-child(4){animation-delay:1.35s}
+    @keyframes charge-breathe{0%,100%{opacity:.28}45%{opacity:1}75%{opacity:.45}}@keyframes charge-travel{0%,12%{transform:translateX(0);opacity:0}20%{opacity:1}65%{transform:translateX(360%);opacity:1}75%,100%{transform:translateX(360%);opacity:0}}@keyframes spark-glow{0%,15%,70%,100%{opacity:0;transform:scale(.75)}28%,48%{opacity:1;transform:scale(1.18)}}@keyframes charge-cell{0%,12%{opacity:.25}25%,67%{opacity:1}80%,100%{opacity:.25}}
     .trust{max-width:1080px;margin:-30px auto 0;position:relative;z-index:5;background:#fff;border-radius:18px;box-shadow:0 10px 35px rgba(16,32,58,.11);display:grid;grid-template-columns:repeat(3,1fr);padding:20px 28px}.trust-item{display:flex;gap:12px;align-items:center;padding:7px 22px;border-right:1px solid var(--line)}.trust-item:last-child{border-right:0}.trust-icon{font-size:1.55rem}.trust-item strong{display:block}.trust-item small{color:var(--muted)}
     section{padding:84px 22px}.container{max-width:1120px;margin:auto}.section-head{text-align:center;max-width:720px;margin:0 auto 42px}.kicker{color:var(--blue);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800}.section-head h2{font-size:clamp(1.9rem,4vw,3rem);letter-spacing:-.04em;line-height:1.12;margin:10px 0}.section-head p{color:var(--muted);margin:0}
     .problems{background:var(--bg)}.problem-grid,.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.tile{background:#fff;border:1px solid #e2e8f1;border-radius:18px;padding:25px}.tile-icon{width:46px;height:46px;border-radius:13px;background:#eaf1ff;color:var(--blue);display:grid;place-items:center;font-size:1.3rem;margin-bottom:18px}.tile h3{margin:0 0 8px;font-size:1.05rem}.tile p{margin:0;color:var(--muted);font-size:.92rem}
@@ -32,6 +35,30 @@
     @media(max-width:900px){.hero-grid,.showcase,.demo-wrap,.order-wrap{grid-template-columns:1fr}.hero-grid{gap:34px}.visual{max-width:600px;margin:auto}.trust{margin:0;border-radius:0;box-shadow:none;border-bottom:1px solid var(--line)}.problem-grid,.feature-grid{grid-template-columns:1fr 1fr}.demo-wrap{gap:38px}.demo-copy{text-align:center}.demo-list{max-width:440px;margin:0 auto 28px;text-align:left}.gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:280px 220px 220px}.gallery-grid img:first-child{grid-column:1/3;grid-row:auto}.gallery-grid img:nth-child(4){grid-column:1/3}.order-summary{padding:32px}.form{padding:32px}}
     @media(max-width:620px){body{padding-bottom:74px}.nav{height:62px;padding:0 16px}.nav-link{display:none}.hero{padding:34px 18px 45px}.hero h1{font-size:2.45rem}.sub{font-size:1rem}.price{font-size:2.3rem}.hero .cta{width:100%}.product-card{padding:12px;border-radius:20px}.product-card img{height:360px}.floating{display:none}.trust{grid-template-columns:1fr;padding:16px 20px}.trust-item{border-right:0;border-bottom:1px solid var(--line);padding:12px 0}.trust-item:last-child{border-bottom:0}section{padding:64px 18px}.problem-grid,.feature-grid{grid-template-columns:1fr}.showcase{gap:30px}.showcase-img img{height:390px}.demo-card{max-width:350px}.demo-badge{left:10px;bottom:24px}.gallery-grid{display:grid;grid-template-columns:1fr;grid-template-rows:repeat(4,260px)}.gallery-grid img:first-child,.gallery-grid img:nth-child(4){grid-column:auto}.order-wrap{border-radius:20px}.order-summary,.form{padding:26px}.sticky{display:flex;position:fixed;z-index:99;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #dce3ed;padding:10px 14px;align-items:center;justify-content:space-between;box-shadow:0 -8px 30px rgba(12,27,50,.12)}.sticky strong{font-size:1.15rem}.sticky .cta{padding:.72rem 1rem;border-radius:10px}.microcopy{gap:10px}}
     @media(max-width:620px){.nav{gap:8px}.logo{font-size:.83rem;gap:.35rem}.logo-mark{width:30px;height:30px;font-size:1rem}.language-switch button{font-size:.82rem;padding:5px 6px}.trust-item,html[dir="rtl"] .trust-item{border-left:0;border-right:0}}
+    @media(max-width:620px){.charge-fx{inset:12px;border-radius:19px}.charge-spark{font-size:16px}.charge-spark.two{font-size:12px}.charge-spark.three{display:none}}
+    /* High-contrast charging accent: visible even on bright product photos and small screens. */
+    .product-card{border-color:#b9dcff;box-shadow:0 18px 50px rgba(12,30,59,.13),0 0 0 2px rgba(42,151,255,.16)}
+    .charge-fx:before{border:3px solid #268cf4;box-shadow:inset 0 0 26px rgba(18,100,255,.3),0 0 15px rgba(18,100,255,.5);animation:charge-breathe 2.8s ease-in-out infinite}
+    .charge-fx:after{height:6px;background:linear-gradient(90deg,transparent,#1d8cff 20%,#fff 55%,#1d8cff 80%,transparent);box-shadow:0 0 20px 5px rgba(25,134,255,.75);animation:charge-travel 2.8s ease-in-out infinite}
+    .charge-spark{color:#fff;text-shadow:0 0 5px #1264ff,0 0 13px #1264ff,0 0 22px #1264ff;font-size:27px;animation:spark-glow 2.8s ease-in-out infinite}.charge-spark.one{top:11%;right:6%}.charge-spark.two{bottom:17%;left:6%;font-size:23px}.charge-spark.three{top:43%;left:5%;font-size:18px}
+    .charge-bolt{position:absolute;left:13px;bottom:12px;width:46px;height:46px;display:grid;place-items:center;background:#07162f;color:#ffc01c;border:2px solid #78ceff;border-radius:13px;font-size:28px;line-height:1;box-shadow:0 0 0 4px rgba(34,143,255,.26),0 0 20px #238dff;animation:bolt-pulse 2.8s ease-in-out infinite}
+    .charge-meter{right:13px;bottom:19px;width:70px;height:28px;padding:5px;border:2px solid #83d5ff;background:#07162f;box-shadow:0 0 15px #238dff}.charge-meter i{background:#ffc01c;box-shadow:0 0 7px #ffc01c;animation-duration:2.8s}
+    @keyframes bolt-pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 4px rgba(34,143,255,.25),0 0 15px #238dff}50%{transform:scale(1.09);box-shadow:0 0 0 10px rgba(34,143,255,.07),0 0 28px #238dff}}
+    @media(max-width:620px){.charge-bolt{left:10px;bottom:10px;width:42px;height:42px;font-size:26px}.charge-meter{right:10px;bottom:17px;width:62px}.charge-spark.one{display:block;font-size:23px}.charge-spark.two{font-size:20px}}
+    @media(prefers-reduced-motion:reduce){.charge-fx:before,.charge-fx:after,.charge-spark,.charge-meter i,.charge-bolt{animation:none!important}.charge-fx:after,.charge-spark{display:none}.charge-fx:before{opacity:.6}.charge-meter i{opacity:1}html{scroll-behavior:auto}}
+    /* Motion accompanies shopping actions: finding checkout, recalculating, sending, confirming. */
+    .order-wrap.is-highlighted{animation:order-highlight 1.65s ease-out}
+    #orderTotal.is-updated,.summary-price.is-updated{animation:total-update .36s ease-out}
+    .form .cta.is-submitting:after{content:"";width:17px;height:17px;border:2px solid rgba(11,19,35,.25);border-top-color:#0b1323;border-radius:50%;animation:submit-spin .7s linear infinite}
+    .success.is-visible{animation:status-appear .42s ease-out}
+    .discount-line.is-revealed{animation:discount-reveal .5s ease-out}
+    @keyframes order-highlight{0%,100%{box-shadow:var(--shadow)}30%{box-shadow:0 0 0 6px rgba(18,100,255,.22),var(--shadow)}}
+    @keyframes total-update{0%,100%{transform:scale(1)}45%{transform:scale(1.08)}}
+    @keyframes submit-spin{to{transform:rotate(360deg)}}
+    @keyframes status-appear{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes discount-reveal{0%{opacity:0;transform:translateY(-6px)}55%{opacity:1;transform:translateY(0);background:#dff5ea}100%{background:transparent}}
+    @media(max-width:620px){body.scroll-cta-ready .sticky{transform:translateY(110%);opacity:0;pointer-events:none;transition:transform .35s ease,opacity .35s ease}body.scroll-cta-ready .sticky.is-visible{transform:translateY(0);opacity:1;pointer-events:auto}}
+    @media(prefers-reduced-motion:reduce){.order-wrap.is-highlighted,#orderTotal.is-updated,.summary-price.is-updated,.form .cta.is-submitting:after,.success.is-visible,.discount-line.is-revealed{animation:none!important}body.scroll-cta-ready .sticky{transition:none!important}}
   </style>
 </head>
 <body>
@@ -60,7 +87,7 @@
         </div>
         <div class="visual">
           <div class="floating float-a"><strong>4-en-1</strong>Plus de câbles dispersés</div>
-          <div class="product-card"><img src="https://marocor.com/storage/products/1782145895_1-2026-06-22t172550497-cleanup.jpg" alt="Chargeur de voiture 4-en-1 avec câbles rétractables"></div>
+          <div class="product-card"><img src="https://marocor.com/storage/products/1782145895_1-2026-06-22t172550497-cleanup.jpg" alt="Chargeur de voiture 4-en-1 avec câbles rétractables"><div class="charge-fx" aria-hidden="true"><span class="charge-spark one">✦</span><span class="charge-spark two">✦</span><span class="charge-spark three">✦</span><span class="charge-bolt">⚡</span><span class="charge-meter"><i></i><i></i><i></i><i></i></span></div></div>
           <div class="floating float-b"><strong>178 DH</strong>Livraison incluse</div>
         </div>
       </div>
@@ -142,11 +169,9 @@
           <div class="summary-price">178 DH <small style="font-size:.42em;color:#bdc8d9">l’unité</small></div>
           <ul class="summary-bullets"><li>Livraison gratuite</li><li>Paiement à la livraison</li><li id="selectedQuantity">Quantité sélectionnée : 1</li></ul>
         </div>
-        <form class="form" id="orderForm" action="/api/orders" method="post">
+        <form class="form" id="orderForm" action="https://wa.me/212608731353" method="get" novalidate>
           <input type="hidden" name="language" id="orderLanguage" value="fr">
           <input type="hidden" name="orderId" id="orderId">
-          <input type="hidden" name="productId" value="charger-voiture-4-en-1">
-          <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden"><label for="contact_website">Ne pas remplir</label><input id="contact_website" name="contact_website" tabindex="-1" autocomplete="off"></div>
           <h3>Informations de livraison</h3>
           <div class="field"><label for="name">Nom complet</label><input id="name" name="name" autocomplete="name" required placeholder="Votre nom complet"></div>
           <div class="field"><label for="phone">Téléphone</label><input id="phone" name="phone" autocomplete="tel" required inputmode="tel" placeholder="06 XX XX XX XX"></div>
@@ -156,8 +181,8 @@
           <p class="discount-hint">Le premier à 178 DH, puis −10 % sur chaque chargeur supplémentaire.</p>
           <p id="discountLine" class="discount-line" hidden></p>
           <p id="orderTotal" style="font-weight:800;margin:4px 0 16px" aria-live="polite">Total : 178 DH</p>
-          <button class="cta" type="submit">Confirmer ma commande <span>→</span></button>
-          <p class="form-note">Après l’enregistrement, vous verrez une confirmation. Notre équipe vous contactera bientôt.</p>
+          <button class="cta" type="submit">Envoyer ma commande sur WhatsApp <span>→</span></button>
+          <p class="form-note">WhatsApp s’ouvrira avec votre commande. Appuyez sur Envoyer dans WhatsApp pour la confirmer.</p>
           <div class="success" id="success" role="status" aria-live="polite"></div>
         </form>
       </div>
@@ -176,7 +201,7 @@
     </section>
   </main>
 
-  <footer><strong>AutoCharge Maroc</strong><br>Chargeur voiture 4-en-1 · Livraison au Maroc</footer>
+  <footer><strong>AutoCharge Maroc</strong><br>Chargeur voiture 4-en-1 · Livraison au Maroc<br><a href="/privacy.html" style="color:inherit">Politique de confidentialité</a></footer>
   <div class="sticky"><div><small>Livraison gratuite</small><br><strong>178 DH</strong></div><a class="cta" href="#commande">Commander</a></div>
   <script src="assets/site.js" defer></script>
 </body>
