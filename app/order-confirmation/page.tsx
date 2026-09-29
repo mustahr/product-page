@@ -1,0 +1,4 @@
+export default async function Confirmation({searchParams}:{searchParams:Promise<{lang?:string}>}) {
+ const ar=(await searchParams).lang==="ar";
+ return <main dir={ar?"rtl":"ltr"} style={{minHeight:"100vh",display:"grid",placeItems:"center",padding:20}}><div style={{background:"white",borderRadius:22,padding:"clamp(28px,5vw,48px)",maxWidth:560,boxShadow:"0 16px 48px #15233b1a"}}><div style={{fontSize:40}}>✓</div><h1 style={{fontSize:32}}>{ar?"توصلنا بطلبك":"Nous avons reçu votre commande"}</h1><p style={{fontSize:18,lineHeight:1.6}}>{ar?"شكراً لك. سيتواصل معك فريقنا قريباً لتأكيد الطلب والتوصيل.":"Merci ! Notre équipe vous contactera bientôt pour confirmer votre commande et la livraison."}</p><a href="/store.html" style={{display:"inline-block",background:"#ffc329",color:"#172136",padding:"14px 20px",borderRadius:12,fontWeight:700,textDecoration:"none"}}>{ar?"العودة إلى المتجر":"Retour à la boutique"}</a></div></main>
+}

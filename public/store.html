@@ -169,7 +169,7 @@
           <div class="summary-price">178 DH <small style="font-size:.42em;color:#bdc8d9">l’unité</small></div>
           <ul class="summary-bullets"><li>Livraison gratuite</li><li>Paiement à la livraison</li><li id="selectedQuantity">Quantité sélectionnée : 1</li></ul>
         </div>
-        <form class="form" id="orderForm" action="https://wa.me/212608731353" method="get" novalidate>
+        <form class="form" id="orderForm" action="/api/orders" method="post" novalidate>
           <input type="hidden" name="language" id="orderLanguage" value="fr">
           <input type="hidden" name="orderId" id="orderId">
           <h3>Informations de livraison</h3>
@@ -181,8 +181,8 @@
           <p class="discount-hint">Le premier à 178 DH, puis −10 % sur chaque chargeur supplémentaire.</p>
           <p id="discountLine" class="discount-line" hidden></p>
           <p id="orderTotal" style="font-weight:800;margin:4px 0 16px" aria-live="polite">Total : 178 DH</p>
-          <button class="cta" type="submit">Envoyer ma commande sur WhatsApp <span>→</span></button>
-          <p class="form-note">WhatsApp s’ouvrira avec votre commande. Appuyez sur Envoyer dans WhatsApp pour la confirmer.</p>
+          <button class="cta" type="submit">Confirmer ma commande <span>→</span></button>
+          <p class="form-note">Après l’enregistrement, vous verrez une confirmation. Notre équipe vous contactera bientôt.</p>
           <div class="success" id="success" role="status" aria-live="polite"></div>
         </form>
       </div>

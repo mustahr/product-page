@@ -1,4 +1,4 @@
-const WHATSAPP_ORDER_NUMBER = '212608731353';
+const ORDER_URL = '/api/orders';
 const UNIT_PRICE = 178;
 const UNIT_CENTS = UNIT_PRICE * 100;
 const ar = {
@@ -42,8 +42,8 @@ const ar = {
   'Votre nom complet': 'اسمك الكامل', 'Votre ville': 'مدينتك', 'Quartier, rue, résidence...': 'الحي، الشارع، الإقامة...',
   'Diminuer la quantité': 'تقليل الكمية', 'Augmenter la quantité': 'زيادة الكمية',
   'Le premier à 178 DH, puis −10 % sur chaque chargeur supplémentaire.': 'الشاحن الأول بـ178 درهماً، ثم خصم 10٪ على كل شاحن إضافي.',
-  'Total : 178 DH': 'المجموع: 178 درهم', 'Envoyer ma commande sur WhatsApp': 'إرسال طلبي عبر واتساب',
-  'WhatsApp s’ouvrira avec votre commande. Appuyez sur Envoyer dans WhatsApp pour la confirmer.': 'سيفتح واتساب مع تفاصيل طلبك. اضغط إرسال في واتساب لتأكيده.',
+  'Total : 178 DH': 'المجموع: 178 درهم', 'Confirmer ma commande': 'تأكيد طلبي',
+  'Après l’enregistrement, vous verrez une confirmation. Notre équipe vous contactera bientôt.': 'بعد تسجيل طلبك ستظهر رسالة تأكيد. سيتواصل معك فريقنا قريباً.',
   'Questions fréquentes': 'الأسئلة الشائعة', 'Avant de commander': 'قبل الطلب',
   'Quels connecteurs sont inclus ?': 'ما الوصلات المتوفرة؟',
   'Le chargeur comprend deux câbles rétractables : un Type-C et un connecteur compatible iPhone, ainsi que des ports USB-A et USB-C.': 'يضم الشاحن كابلين قابلين للسحب: Type-C وموصلاً متوافقاً مع iPhone، إضافة إلى منفذي USB-A وUSB-C.',
@@ -190,37 +190,44 @@ function validateOrder() {
   if (Object.keys(errors).length) document.getElementById(Object.keys(errors)[0]).focus();
   return Object.keys(errors).length === 0;
 }
-orderForm.addEventListener('submit', function (e) {
+orderForm.addEventListener('submit', async function (e) {
   e.preventDefault();
   orderStatus.style.display = 'none';
   orderStatus.classList.remove('is-visible');
   if (!validateOrder()) return;
+  document.getElementById('orderLanguage').value = currentLanguage;
   const idField = document.getElementById('orderId');
   if (!idField.value) idField.value = window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
-  const value = key => document.getElementById(key).value.trim();
-  const quantity = Number(quantityInput.value);
-  const { discount, total } = prices(quantity);
-  const dirhams = cents => (cents / 100).toFixed(cents % 100 ? 2 : 0).replace('.', ',') + ' DH';
-  const message = [
-    '🛍️ Nouvelle commande AutoCharge Maroc',
-    `Référence : ${idField.value}`,
-    'Produit : Chargeur voiture 4-en-1',
-    `Quantité : ${quantity}`,
-    `Prix unitaire : ${UNIT_PRICE} DH`,
-    `Réduction : ${dirhams(discount)}`,
-    `Total : ${dirhams(total)}`,
-    `Client : ${value('name')}`,
-    `Téléphone : ${value('phone')}`,
-    `Ville : ${value('city')}`,
-    `Adresse : ${value('address')}`,
-    'Paiement à la livraison · Livraison gratuite'
-  ].join('\n');
-  const url = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(message)}`;
-  orderStatus.classList.remove('is-error');
-  orderStatus.textContent = words('WhatsApp s’ouvre. Appuyez sur Envoyer pour nous transmettre votre commande.', 'سيُفتح واتساب. اضغط إرسال لإرسال طلبك إلينا.');
-  orderStatus.style.display = 'block';
-  orderStatus.classList.add('is-visible');
-  window.location.assign(url);
+  submitButton.disabled = true;
+  submitButton.classList.add('is-submitting');
+  submitButton.firstChild.nodeValue = words('Enregistrement... ', 'جارٍ تسجيل الطلب... ');
+  try {
+    const response = await fetch(ORDER_URL, {method: 'POST', body: new FormData(orderForm), headers: {Accept: 'application/json'}});
+    const result = await response.json();
+    if (response.ok && result.ok) {
+      orderStatus.classList.remove('is-error');
+      orderStatus.textContent = words('Nous avons reçu votre commande. Notre équipe vous contactera bientôt pour confirmer la livraison.', 'توصلنا بطلبك. سيتواصل معك فريقنا قريباً لتأكيد التوصيل.');
+      orderForm.classList.add('is-complete');
+      orderStatus.style.display = 'block';
+      orderStatus.classList.add('is-visible');
+      orderStatus.scrollIntoView({behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'center'});
+      return;
+    }
+    if (result.fieldErrors) {
+      for (const key of orderFields) setFieldError(key, result.fieldErrors[key]);
+      const first = Object.keys(result.fieldErrors)[0];
+      if (first) document.getElementById(first).focus();
+    } else throw new Error('storage');
+  } catch (_) {
+    orderStatus.classList.add('is-error');
+    orderStatus.textContent = words('La commande n’a pas été enregistrée. Réessayez dans un instant.', 'لم يتم تسجيل الطلب. يرجى المحاولة بعد قليل.');
+    orderStatus.style.display = 'block';
+    orderStatus.classList.add('is-visible');
+  } finally {
+    submitButton.disabled = false;
+    submitButton.classList.remove('is-submitting');
+    submitButton.firstChild.nodeValue = words('Confirmer ma commande ', 'تأكيد طلبي ');
+  }
 });
 let savedLanguage = 'fr';
 try { savedLanguage = localStorage.getItem('autocharge-language') || 'fr'; } catch (_) {}
