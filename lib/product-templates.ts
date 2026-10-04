@@ -17,12 +17,12 @@ export function validateProduct(input:Record<string,unknown>){
  const detail=Object.fromEntries(detailFields.map(f=>[f.key,typeof raw[f.key]==='string'?(raw[f.key] as string).trim().slice(0,4000):'']));
  if((detail.variants||'').split('\n').some(v=>v.trim().length>200))throw new Error('Chaque option doit contenir au maximum 200 caractères.');
  const fee=Number(raw.shippingFee||0);if(!Number.isFinite(fee)||fee<0||fee>100000)throw new Error('Frais de livraison invalides.');detail.shippingFee=String(fee);
- for(const url of String(detail.gallery||'').split('\n').filter(Boolean)){try{if(new URL(url).protocol!=='https:')throw new Error();}catch{throw new Error('Les images de galerie doivent être des liens HTTPS.');}}
+ for(const url of String(detail.gallery||'').split('\n').filter(Boolean)){try{if(!validImageUrl(url.trim()))throw new Error();}catch{throw new Error('Les images de galerie doivent être des liens HTTPS.');}}
  if(detail.faq&&detail.faq.split('\n').filter(Boolean).some(line=>!line.includes('|')||!line.split('|')[0].trim()||!line.split('|').slice(1).join('|').trim()))throw new Error('Format FAQ : Question | Réponse, une par ligne.');
  if(input.status==='published'&&['specifications','included','shippingTime','coverage','returns','warranty','support'].some(k=>!detail[k]))throw new Error('Complétez les caractéristiques, le contenu, la livraison, les retours, la garantie et le contact avant publication.');
  const p={details:JSON.stringify(detail),id:text('id',36)||crypto.randomUUID(),name:text('name',120),description:text('description',2000),benefits:text('benefits',2000),image:text('image',1500),price_cents:Math.round(Number(input.price)*100),country:text('country',20),template:text('template',40),language:text('language',2),status:text('status',20),currency:text('country',20)==='Libye'?'LYD':'MAD'};
- if(!/^[a-f0-9-]{36}$/i.test(p.id)||!p.name||!p.description||!Number.isSafeInteger(p.price_cents)||p.price_cents<100||p.price_cents>100000000||!templates.some(t=>t.id===p.template)||!['Maroc','Libye'].includes(p.country)||!['fr','ar'].includes(p.language)||!['draft','published'].includes(p.status))throw new Error('Vérifiez les champs obligatoires et le prix.');
- try{if(new URL(p.image).protocol!=='https:')throw new Error();}catch{throw new Error('Ajoutez une URL d’image HTTPS valide.');}
+ if(!isProductId(p.id)||!p.name||!p.description||!Number.isSafeInteger(p.price_cents)||p.price_cents<100||p.price_cents>100000000||!templates.some(t=>t.id===p.template)||!['Maroc','Libye'].includes(p.country)||!['fr','ar'].includes(p.language)||!['draft','published'].includes(p.status))throw new Error('Vérifiez les champs obligatoires et le prix.');
+ try{if(!validImageUrl(p.image))throw new Error();}catch{throw new Error('Ajoutez une URL d’image HTTPS valide.');}
  return p;
 }
 
@@ -46,3 +46,6 @@ export const detailFields=[
  {key:'faq',label:'Questions fréquentes',hint:'Une ligne par question : Question | Réponse.',group:'Questions fréquentes'}
 ] as const;
 export function readDetails(p:{details?:string}):Record<string,string>{try{const d=JSON.parse(p.details||'{}');return d&&typeof d==='object'?d:{};}catch{return {};}}
+
+export function isProductId(id:string){return /^(?:[a-f0-9-]{36}|car-charger|vegetable-cutter)$/i.test(id);}
+export function validImageUrl(url:string){if(/^\/assets\/[a-zA-Z0-9_./-]+$/.test(url)&&!url.includes('..'))return true;try{return new URL(url).protocol==='https:';}catch{return false;}}

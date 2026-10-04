@@ -3,3 +3,4 @@
 
 /* Keep ordering instructions within the viewport in either language. */
 .how{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.how>*,.how li>div{min-width:0}.how h2,.how h3,.how p{overflow-wrap:anywhere}@media(max-width:760px){.how{grid-template-columns:minmax(0,1fr)}.how h2{font-size:clamp(32px,9vw,47px)}}
+.hero-images>a[hidden]{display:none}
