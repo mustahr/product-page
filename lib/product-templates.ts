@@ -1,14 +1,14 @@
 export const templates = [
- {id:'electronics',name:'Électronique',icon:'↗',color:'#2449ee',light:'#edf1ff',layout:'split',tag:'La technologie au quotidien'},
- {id:'car',name:'Auto & accessoires',icon:'⚡',color:'#17384a',light:'#e7f3f7',layout:'split',tag:'Bien équipé, sur chaque trajet'},
- {id:'kitchen',name:'Cuisine',icon:'◉',color:'#547329',light:'#eff5df',layout:'editorial',tag:'Préparer devient plus simple'},
- {id:'home',name:'Maison & déco',icon:'⌂',color:'#866548',light:'#f7efe6',layout:'editorial',tag:'Une maison qui vous ressemble'},
- {id:'beauty',name:'Beauté & soin',icon:'✦',color:'#a14369',light:'#fbeef3',layout:'centered',tag:'Votre moment de soin'},
- {id:'fashion',name:'Mode & accessoires',icon:'◇',color:'#262626',light:'#efefec',layout:'editorial',tag:'Le détail qui fait votre style'},
- {id:'fitness',name:'Sport & fitness',icon:'➚',color:'#d14d20',light:'#fff0e6',layout:'split',tag:'Prêt pour votre prochain objectif'},
- {id:'baby',name:'Bébé & enfants',icon:'☀',color:'#337b82',light:'#e9f7f5',layout:'centered',tag:'Des idées pour les petits'},
- {id:'pets',name:'Animaux',icon:'♡',color:'#8052b5',light:'#f3edfc',layout:'centered',tag:'Pour vos compagnons'},
- {id:'gifts',name:'Cadeaux & découvertes',icon:'✧',color:'#b97916',light:'#fff5df',layout:'centered',tag:'Une belle idée à offrir'}
+ {id:'electronics',name:'Électronique',icon:'↗',color:'#2449ee',light:'#e9edff',design:'Studio électrique',layout:'split',tag:'La technologie au quotidien'},
+ {id:'car',name:'Auto & accessoires',icon:'⚡',color:'#ffc55a',light:'#1b2731',design:'Route / Édition nuit',layout:'split',tag:'Bien équipé, sur chaque trajet'},
+ {id:'kitchen',name:'Cuisine',icon:'◉',color:'#b83224',light:'#fff5dd',design:'Cuisine solaire',layout:'editorial',tag:'Préparer devient plus simple'},
+ {id:'home',name:'Maison & déco',icon:'⌂',color:'#69503b',light:'#eee6db',design:'Maison atelier',layout:'editorial',tag:'Une maison qui vous ressemble'},
+ {id:'beauty',name:'Beauté & soin',icon:'✦',color:'#593444',light:'#f4e9e3',design:'Rituel botanique',layout:'centered',tag:'Votre moment de soin'},
+ {id:'fashion',name:'Mode & accessoires',icon:'◇',color:'#171717',light:'#e9e9e7',design:'Édition essentielle',layout:'editorial',tag:'Le détail qui fait votre style'},
+ {id:'fitness',name:'Sport & fitness',icon:'➚',color:'#c9ff53',light:'#252a27',design:'Performance club',layout:'split',tag:'Prêt pour votre prochain objectif'},
+ {id:'baby',name:'Bébé & enfants',icon:'☀',color:'#6653a4',light:'#f3eafb',design:'Petites merveilles',layout:'centered',tag:'Des idées pour les petits'},
+ {id:'pets',name:'Animaux',icon:'♡',color:'#14564b',light:'#e5f1de',design:'Compagnons club',layout:'centered',tag:'Pour vos compagnons'},
+ {id:'gifts',name:'Cadeaux & découvertes',icon:'✧',color:'#762f45',light:'#f5eadb',design:'Un bel instant',layout:'centered',tag:'Une belle idée à offrir'}
 ] as const;
 export type Product={id:string;name:string;description:string;benefits:string;image:string;price_cents:number;currency:string;country:string;template:string;language:string;status:string;created_at:string;details:string};
 export function validateProduct(input:Record<string,unknown>){
