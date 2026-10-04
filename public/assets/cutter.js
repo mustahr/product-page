@@ -12,3 +12,24 @@ form.onsubmit=async(event)=>{event.preventDefault();result.textContent='';let in
  try{const response=await fetch('/api/orders',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const data=await response.json();if(!response.ok||!data.ok){if(data.fieldErrors){Object.keys(data.fieldErrors).forEach(key=>error(key,'يرجى التحقق من هذا الحقل.'));throw new Error('validation');}throw new Error('storage');}result.className='success';result.textContent='تم استلام طلبك لقطاعة الخضروات. سيتواصل معك الفريق لتأكيد العنوان والتوصيل. الدفع عند الاستلام.';submit.textContent='تم تسجيل الطلب';}
  catch{result.className='error';result.textContent='لم يتم تسجيل الطلب. تحقق من البيانات وحاول مرة أخرى.';submit.disabled=false;submit.textContent='تأكيد الطلب — الدفع عند الاستلام';}
 };
+
+// Keep the fixed order bar out of the way while the checkout is on screen.
+const mobileOrderBar=document.querySelector('.mobile-order');
+if(mobileOrderBar){
+ const syncOrderBar=()=>{
+  const bounds=form.getBoundingClientRect();
+  const viewportHeight=window.visualViewport?.height||window.innerHeight;
+  mobileOrderBar.hidden=bounds.top<viewportHeight&&bounds.bottom>0;
+ };
+ if('IntersectionObserver' in window){
+  const formObserver=new IntersectionObserver(entries=>{
+   mobileOrderBar.hidden=entries[0].isIntersecting;
+  },{threshold:0});
+  formObserver.observe(form);
+ }else{
+  window.addEventListener('scroll',syncOrderBar,{passive:true});
+ }
+ window.addEventListener('resize',syncOrderBar,{passive:true});
+ window.visualViewport?.addEventListener('resize',syncOrderBar,{passive:true});
+ syncOrderBar();
+}
