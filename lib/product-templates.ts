@@ -10,7 +10,7 @@ export const templates = [
  {id:'pets',name:'Animaux',icon:'♡',color:'#14564b',light:'#e5f1de',design:'Compagnons club',layout:'centered',tag:'Pour vos compagnons'},
  {id:'gifts',name:'Cadeaux & découvertes',icon:'✧',color:'#762f45',light:'#f5eadb',design:'Un bel instant',layout:'centered',tag:'Une belle idée à offrir'}
 ] as const;
-export type Product={id:string;name:string;description:string;benefits:string;image:string;price_cents:number;currency:string;country:string;template:string;language:string;status:string;created_at:string;details:string};
+export type Product={id:string;name:string;description:string;benefits:string;image:string;price_cents:number;currency:string;country:string;template:string;language:string;status:string;created_at:string;details:string;stock_quantity?:number|null;low_stock_threshold?:number};
 export function validateProduct(input:Record<string,unknown>){
  const text=(k:string,n:number)=>typeof input[k]==='string'?(input[k] as string).trim().slice(0,n):'';
  const raw=typeof input.details==='object'&&input.details!==null?input.details as Record<string,unknown>:{};

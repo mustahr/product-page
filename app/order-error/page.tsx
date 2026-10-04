@@ -4,6 +4,7 @@ export default async function ErrorPage({searchParams}:{searchParams:Promise<{la
   phone:["Vérifiez le numéro de téléphone : il doit contenir entre 8 et 15 chiffres.","يرجى التحقق من رقم الهاتف: يجب أن يتكون من 8 إلى 15 رقماً."],
   details:["Complétez votre nom, votre ville et votre adresse de livraison.","يرجى إدخال الاسم والمدينة وعنوان التوصيل."],
   quantity:["Choisissez une quantité entre 1 et 99.","يرجى اختيار كمية بين 1 و99."],
+  stock:["Stock insuffisant pour cette quantité. Revenez à la boutique pour vérifier la disponibilité.","المخزون غير كافٍ لهذه الكمية. عد إلى المتجر للتحقق من التوفر."],
   storage:["Un problème technique a empêché l’enregistrement. Aucun achat n’a été confirmé. Veuillez réessayer dans quelques instants.","حدث عطل تقني ولم يتم تسجيل الطلب. يرجى إعادة المحاولة بعد قليل."],
  };
  const message=messages[reason||""]||messages.storage;

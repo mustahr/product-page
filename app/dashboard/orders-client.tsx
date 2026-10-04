@@ -22,9 +22,9 @@ export default function OrdersClient({initialOrders,unavailable}:{initialOrders:
  async function changeStatus(order:Order,status:string){if(status===order.status||savingIds.current.has(order.id))return;
   savingIds.current.add(order.id);setSaving(s=>({...s,[order.id]:"Enregistrement…"}));setOrders(list=>list.map(o=>o.id===order.id?{...o,status}:o));
   try{const body=new FormData();body.set("id",order.id);body.set("status",status);
-   const response=await fetch("/api/orders/status",{method:"POST",body,headers:{Accept:"application/json"}});if(!response.ok)throw new Error("save");
+   const response=await fetch("/api/orders/status",{method:"POST",body,headers:{Accept:"application/json"}});if(!response.ok){const data=await response.json() as {error?:string};throw new Error(data.error||"Échec. Réessayez.");}
    setSaving(s=>({...s,[order.id]:"Enregistré"}));setTimeout(()=>setSaving(s=>({...s,[order.id]:""})),2400);
-  }catch{setOrders(list=>list.map(o=>o.id===order.id?{...o,status:order.status}:o));setSaving(s=>({...s,[order.id]:"Échec. Réessayez."}));}
+  }catch(error){setOrders(list=>list.map(o=>o.id===order.id?{...o,status:order.status}:o));setSaving(s=>({...s,[order.id]:error instanceof Error?error.message:"Échec. Réessayez."}));}
   finally{savingIds.current.delete(order.id)}
  }
  async function deleteOrder(order:Order){

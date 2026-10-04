@@ -159,6 +159,7 @@ const orderStatus = document.getElementById('success');
 const submitButton = orderForm.querySelector('button[type="submit"]');
 const orderFields = ['name', 'phone', 'city', 'address', 'quantity'];
 function fieldMessage(key, issue) {
+  if (issue === 'stock') return words('Stock insuffisant. Choisissez une quantité inférieure.', 'المخزون غير كافٍ. اختر كمية أقل.');
   if (issue === 'required') return words('Ce champ est obligatoire.', 'هذا الحقل مطلوب.');
   if (key === 'phone') return words('Saisissez un numéro de téléphone de 8 à 15 chiffres.', 'أدخل رقم هاتف من 8 إلى 15 رقماً.');
   return words('Choisissez une quantité entre 1 et 99.', 'اختر كمية بين 1 و99.');
@@ -192,7 +193,6 @@ function validateOrder() {
 }
 orderForm.addEventListener('submit', async function (e) {
   e.preventDefault();
-  if (submitButton.disabled || orderForm.classList.contains('is-complete')) return;
   orderStatus.style.display = 'none';
   orderStatus.classList.remove('is-visible');
   if (!validateOrder()) return;
@@ -206,12 +206,6 @@ orderForm.addEventListener('submit', async function (e) {
     const response = await fetch(ORDER_URL, {method: 'POST', body: new FormData(orderForm), headers: {Accept: 'application/json'}});
     const result = await response.json();
     if (response.ok && result.ok) {
-      // Track accepted orders only; analytics must never interrupt confirmation.
-      try {
-        if (typeof window.fbq === 'function') {
-          window.fbq('track', 'Lead', {}, {eventID: idField.value});
-        }
-      } catch (_) {}
       orderStatus.classList.remove('is-error');
       orderStatus.textContent = words('Nous avons reçu votre commande. Notre équipe vous contactera bientôt pour confirmer la livraison.', 'توصلنا بطلبك. سيتواصل معك فريقنا قريباً لتأكيد التوصيل.');
       orderForm.classList.add('is-complete');
