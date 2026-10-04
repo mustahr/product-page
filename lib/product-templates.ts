@@ -10,12 +10,13 @@ export const templates = [
  {id:'pets',name:'Animaux',icon:'♡',color:'#14564b',light:'#e5f1de',design:'Compagnons club',layout:'centered',tag:'Pour vos compagnons'},
  {id:'gifts',name:'Cadeaux & découvertes',icon:'✧',color:'#762f45',light:'#f5eadb',design:'Un bel instant',layout:'centered',tag:'Une belle idée à offrir'}
 ] as const;
-export type Product={id:string;name:string;description:string;benefits:string;image:string;price_cents:number;currency:string;country:string;template:string;language:string;status:string;created_at:string;details:string;stock_quantity?:number|null;low_stock_threshold?:number};
+export type Product={id:string;name:string;description:string;benefits:string;image:string;price_cents:number;currency:string;country:string;template:string;language:string;status:string;created_at:string;details:string;stock_quantity?:number|null;low_stock_threshold?:number;variant_stock?:Record<string,number|null>};
 export function validateProduct(input:Record<string,unknown>){
  const text=(k:string,n:number)=>typeof input[k]==='string'?(input[k] as string).trim().slice(0,n):'';
  const raw=typeof input.details==='object'&&input.details!==null?input.details as Record<string,unknown>:{};
  const detail=Object.fromEntries(detailFields.map(f=>[f.key,typeof raw[f.key]==='string'?(raw[f.key] as string).trim().slice(0,4000):'']));
  if((detail.variants||'').split('\n').some(v=>v.trim().length>200))throw new Error('Chaque option doit contenir au maximum 200 caractères.');
+ const options=(detail.variants||'').split('\n').map(v=>v.trim()).filter(Boolean);if(new Set(options).size!==options.length)throw new Error('Chaque couleur, taille ou option doit avoir un nom unique.');
  const fee=Number(raw.shippingFee||0);if(!Number.isFinite(fee)||fee<0||fee>100000)throw new Error('Frais de livraison invalides.');detail.shippingFee=String(fee);
  for(const url of String(detail.gallery||'').split('\n').filter(Boolean)){try{if(!validImageUrl(url.trim()))throw new Error();}catch{throw new Error('Les images de galerie doivent être des liens HTTPS.');}}
  if(detail.faq&&detail.faq.split('\n').filter(Boolean).some(line=>!line.includes('|')||!line.split('|')[0].trim()||!line.split('|').slice(1).join('|').trim()))throw new Error('Format FAQ : Question | Réponse, une par ligne.');
@@ -32,7 +33,7 @@ export const detailFields=[
  {key:'dimensions',label:'Dimensions & poids',hint:'Précisez les unités : cm, mm, g ou kg.',group:'Caractéristiques'},
  {key:'materials',label:'Matériaux / ingrédients',hint:'Composition exacte, selon la catégorie.',group:'Caractéristiques'},
  {key:'compatibility',label:'Compatibilité / à qui convient-il ?',hint:'Appareils, tailles, usages ou public concernés.',group:'Caractéristiques'},
- {key:'variants',label:'Couleurs / tailles / options disponibles',hint:'Une option par ligne. Le client la choisira dans son formulaire.',group:'Caractéristiques'},
+ {key:'variants',label:'Couleurs / tailles / options disponibles',hint:'Une option unique par ligne, par exemple Noir · M. Gérez sa quantité ensuite dans Mes produits → Gérer le stock.',group:'Caractéristiques'},
  {key:'included',label:'Contenu de la boîte',hint:'Listez tout ce que l’acheteur reçoit, sans ajouter d’accessoire non inclus.',group:'Utilisation & contenu'},
  {key:'usage',label:'Mode d’emploi',hint:'Étapes simples pour utiliser le produit.',group:'Utilisation & contenu'},
  {key:'care',label:'Entretien & précautions',hint:'Nettoyage, stockage, avertissements et restrictions utiles.',group:'Utilisation & contenu'},
