@@ -60,7 +60,7 @@
     @media(max-width:620px){body.scroll-cta-ready .sticky{transform:translateY(110%);opacity:0;pointer-events:none;transition:transform .35s ease,opacity .35s ease}body.scroll-cta-ready .sticky.is-visible{transform:translateY(0);opacity:1;pointer-events:auto}}
     @media(prefers-reduced-motion:reduce){.order-wrap.is-highlighted,#orderTotal.is-updated,.summary-price.is-updated,.form .cta.is-submitting:after,.success.is-visible,.discount-line.is-revealed{animation:none!important}body.scroll-cta-ready .sticky{transition:none!important}}
   </style>
-<link rel="stylesheet" href="/assets/product-theme.css"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><style id="legacy-gate">body{visibility:hidden}</style><script src="/assets/legacy-product.js" defer></script></head>
+<link rel="stylesheet" href="/assets/product-theme.css"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><style id="legacy-gate">body{visibility:hidden}</style><script src="/assets/legacy-product.js" defer></script><script src="/assets/attribution.js" defer></script></head>
 <body>
   <div class="topbar">Livraison <span>GRATUITE</span> partout au Maroc · Paiement à la livraison</div>
   <nav class="nav" aria-label="Navigation principale">
@@ -169,7 +169,7 @@
           <div class="summary-price">178 DH <small style="font-size:.42em;color:#bdc8d9">l’unité</small></div>
           <ul class="summary-bullets"><li>Livraison gratuite</li><li>Paiement à la livraison</li><li id="selectedQuantity">Quantité sélectionnée : 1</li></ul>
         </div>
-        <form class="form" id="orderForm" action="/api/orders" method="post" novalidate>
+        <form class="form" id="orderForm" action="/api/orders" method="post" novalidate><input type="hidden" name="productId" value="car-charger">
           <input type="hidden" name="language" id="orderLanguage" value="fr">
           <input type="hidden" name="orderId" id="orderId">
           <h3>Informations de livraison</h3>
