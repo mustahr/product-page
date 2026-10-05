@@ -1,3 +1,4 @@
+import {validateBundles} from './product-pricing';
 export const templates = [
  {id:'electronics',name:'Électronique',icon:'↗',color:'#2449ee',light:'#e9edff',design:'Studio électrique',layout:'split',tag:'La technologie au quotidien'},
  {id:'car',name:'Auto & accessoires',icon:'⚡',color:'#ffc55a',light:'#1b2731',design:'Route / Édition nuit',layout:'split',tag:'Bien équipé, sur chaque trajet'},
@@ -24,6 +25,11 @@ export function validateProduct(input:Record<string,unknown>){
  const p={details:JSON.stringify(detail),id:text('id',36)||crypto.randomUUID(),name:text('name',120),description:text('description',2000),benefits:text('benefits',2000),image:text('image',1500),price_cents:Math.round(Number(input.price)*100),country:text('country',20),template:text('template',40),language:text('language',2),status:text('status',20),currency:text('country',20)==='Libye'?'LYD':'MAD'};
  if(!isProductId(p.id)||!p.name||!p.description||!Number.isSafeInteger(p.price_cents)||p.price_cents<100||p.price_cents>100000000||!templates.some(t=>t.id===p.template)||!['Maroc','Libye'].includes(p.country)||!['fr','ar'].includes(p.language)||!['draft','published'].includes(p.status))throw new Error('Vérifiez les champs obligatoires et le prix.');
  try{if(!validImageUrl(p.image))throw new Error();}catch{throw new Error('Ajoutez une URL d’image HTTPS valide.');}
+ const mode=typeof raw.offerMode==='string'?raw.offerMode:(p.id==='car-charger'?'charger':'none');
+ if(!['none','bundles','charger'].includes(mode)||(mode==='charger'&&p.id!=='car-charger'))throw new Error('Type d’offre invalide.');
+ detail.offerMode=mode;
+ if(mode==='bundles'){const offers=validateBundles(raw.bundleOffers||'[]',p.price_cents,p.id==='vegetable-cutter'?11:99);if(!offers.length)throw new Error('Ajoutez au moins un lot ou choisissez aucune remise.');detail.bundleOffers=JSON.stringify(offers.map(o=>({quantity:o.quantity,total:(o.totalCents/100).toFixed(2)})));}
+ p.details=JSON.stringify(detail);
  return p;
 }
 
