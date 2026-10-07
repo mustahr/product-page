@@ -42,3 +42,11 @@ export const orderDeliveries=sqliteTable('order_deliveries',{
  incident:text('incident').notNull().default(''),reason:text('reason').notNull().default(''),
  revision:integer('revision').notNull().default(1),updatedAt:text('updated_at').notNull()
 });
+
+export const orderCosts=sqliteTable('order_costs',{
+ orderId:text('order_id').primaryKey().references(()=>orders.id,{onDelete:'cascade'}),
+ unitCostCents:integer('unit_cost_cents').notNull(),deliveryCostCents:integer('delivery_cost_cents').notNull(),returnCostCents:integer('return_cost_cents').notNull(),lossCents:integer('loss_cents').notNull(),revision:integer('revision').notNull().default(1),updatedAt:text('updated_at').notNull()
+});
+export const adExpenses=sqliteTable('ad_expenses',{
+ id:text('id').primaryKey(),date:text('date').notNull(),currency:text('currency').notNull(),amountCents:integer('amount_cents').notNull(),note:text('note').notNull().default(''),revision:integer('revision').notNull().default(1),updatedAt:text('updated_at').notNull()
+});
