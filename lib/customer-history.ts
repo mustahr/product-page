@@ -1,8 +1,9 @@
+import {type Delivery} from './order-delivery';
 import {type Confirmation} from './order-confirmation';
 import {customerContact} from './customer-contact';
 export type HistoryRow={id:string;created_at:string;phone:string;currency:string;status:string;product_id?:string;product_name:string;variant?:string;quantity:number;total_cents:number};
 export type CustomerSignals={otherOrders:number;delivered:number;cancelled:number;duplicateIds:string[]};
-export type CustomerOrder=HistoryRow & {name:string;city:string;address:string;customer?:CustomerSignals;confirmation?:Confirmation;language?:string};
+export type CustomerOrder=HistoryRow & {name:string;city:string;address:string;customer?:CustomerSignals;confirmation?:Confirmation;language?:string;delivery?:Delivery};
 export const activeOrder=(status:string)=>['Nouveau','À confirmer','Confirmé','En préparation','Expédié'].includes(status);
 export function customerKey(phone:string,currency:string){
  const digits=phone.replace(/\D/g,'');if(digits.length<8||digits.length>15)return null;

@@ -35,3 +35,10 @@ export const orderConfirmations=sqliteTable('order_confirmations',{
  followUpDate:text('follow_up_date').notNull().default(''),revision:integer('revision').notNull().default(1),
  updatedAt:text('updated_at').notNull()
 });
+
+export const orderDeliveries=sqliteTable('order_deliveries',{
+ orderId:text('order_id').primaryKey().references(()=>orders.id,{onDelete:'cascade'}),
+ courier:text('courier').notNull().default(''),trackingNumber:text('tracking_number').notNull().default(''),trackingUrl:text('tracking_url').notNull().default(''),
+ incident:text('incident').notNull().default(''),reason:text('reason').notNull().default(''),
+ revision:integer('revision').notNull().default(1),updatedAt:text('updated_at').notNull()
+});
