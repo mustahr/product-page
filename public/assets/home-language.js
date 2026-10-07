@@ -41,6 +41,7 @@
     const isArabic = language === 'ar';
     document.documentElement.lang = language;
     document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+    document.querySelectorAll('[data-fr][data-ar]').forEach(el => { el.textContent = el.dataset[isArabic ? 'ar' : 'fr']; });
     for (const item of nodes) item.node.textContent = item.before + item.pair[isArabic ? 1 : 0] + item.after;
     for (const [el, attr, fr, ar] of attributes) if (el) el.setAttribute(attr, isArabic ? ar : fr);
     document.querySelectorAll('main [lang="ar"],main [lang="fr"]').forEach(el => { if (el.classList.contains('arabic')) return; el.lang = language; if (el.hasAttribute('dir')) el.dir = isArabic ? 'rtl' : 'ltr'; });
