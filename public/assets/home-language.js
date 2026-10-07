@@ -34,8 +34,8 @@
     [document.querySelector('.language-switch'), 'aria-label', 'Langue', 'اللغة'],
     [document.querySelector('.hero-images'), 'aria-label', 'Quelques produits de notre sélection', 'بعض المنتجات من مجموعتنا'],
     ...Array.from(document.querySelectorAll('.brand')).map(el => [el, 'aria-label', 'Mustahr Store, accueil', 'متجر مستهر، الصفحة الرئيسية']),
-    ...Array.from(document.querySelectorAll('img[src="/assets/charger-product-clean.png"]')).map(el => [el, 'alt', 'Chargeur voiture 4-en-1 avec câbles rétractables', 'شاحن سيارة 4 في 1 بكابلين قابلين للسحب']),
-    ...Array.from(document.querySelectorAll('img[src="/assets/cutter-reference.png"]')).map(el => [el, 'alt', 'Coupe-légumes 9-en-1 avec panier et accessoires', 'قطاعة خضروات 9 في 1 مع سلة وملحقات'])
+    ...Array.from(document.querySelectorAll('img[src*="charger-product-clean"]')).map(el => [el, 'alt', 'Chargeur voiture 4-en-1 avec câbles rétractables', 'شاحن سيارة 4 في 1 بكابلين قابلين للسحب']),
+    ...Array.from(document.querySelectorAll('img[src*="cutter-reference"]')).map(el => [el, 'alt', 'Coupe-légumes 9-en-1 avec panier et accessoires', 'قطاعة خضروات 9 في 1 مع سلة وملحقات'])
   ];
   function setLanguage(language) {
     const isArabic = language === 'ar';
