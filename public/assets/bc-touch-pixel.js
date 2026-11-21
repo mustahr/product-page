@@ -11,15 +11,15 @@
   }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
   window.fbq('init', pixelId);
   window.fbq('trackSingle', pixelId, 'PageView');
-  if (document.body.dataset.bcProduct === 'coffret') window.fbq('trackSingle', pixelId, 'ViewContent', {
-    content_ids: ['bc-touch-coffret'], content_type: 'product',
-    content_name: 'Coffret B&C Touch'
+  if (['coffret', 'hammam'].includes(document.body.dataset.bcProduct)) window.fbq('trackSingle', pixelId, 'ViewContent', {
+    content_ids: ['bc-touch-' + document.body.dataset.bcProduct], content_type: 'product',
+    content_name: document.body.dataset.bcName || 'Coffret B&C Touch'
   });
   document.addEventListener('click', function (event) {
     var link = event.target.closest && event.target.closest('a.quote-link');
     if (!link || !link.href.startsWith('https://wa.me/212646852347')) return;
     window.fbq('trackSingle', pixelId, 'Contact', {
-      content_name: document.body.dataset.bcProduct === 'coffret' ? 'Coffret B&C Touch' : 'B&C Touch', contact_method: 'WhatsApp'
+      content_name: document.body.dataset.bcName || (document.body.dataset.bcProduct === 'coffret' ? 'Coffret B&C Touch' : 'B&C Touch'), contact_method: 'WhatsApp'
     });
   });
 })(window, document);
