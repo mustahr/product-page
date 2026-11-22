@@ -6,7 +6,7 @@
  {id:'bc-touch-coffret',name:'Coffret cheveux B&C Touch',ar:'مجموعة العناية بالشعر B&C Touch',category:'Un moment pour soi',categoryAr:'لحظة للعناية',description:'Shampooing au sidr, masque et sérum : trois essentiels dans un coffret.',descriptionAr:'شامبو بالسدر وماسك وسيروم: ثلاثة منتجات في مجموعة واحدة.',image:'/assets/bc-touch/set.webp',price_cents:18900,currency:'MAD',country:'Maroc',status:'published'}];
  let products=defaults;
  function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text)el.textContent=text;return el;}
- function href(p){return p.id==='car-charger'?'/store.html':p.id==='vegetable-cutter'?'/vegetable-cutter.html':p.id==='bc-touch-coffret'?'/bc-touch.html':'/products/'+encodeURIComponent(p.id);}
+ function href(p){return p.id==='car-charger'?'/store.html':p.id==='vegetable-cutter'?'/vegetable-cutter.html':p.id==='bc-touch-coffret'?'/bc-touch-coffret.html':p.id==='bc-touch-hammam'?'/bc-touch-hammam.html':'/products/'+encodeURIComponent(p.id);}
  function render(){const ar=document.documentElement.lang==='ar';const fragment=document.createDocumentFragment();
  for(const p of products.filter(p=>p.status==='published')){
  const known=defaults.find(d=>d.id===p.id)||{},card=node('article','product-card collection-card');card.dataset.catalogProduct=p.id;

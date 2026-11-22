@@ -9,3 +9,5 @@
  if(Object.keys(data).length){entry={time:Date.now(),data:data};try{sessionStorage.setItem(storageKey,JSON.stringify(entry));}catch(e){}}
  document.addEventListener('submit',function(event){var form=event.target;if(!(form instanceof HTMLFormElement)||!form.querySelector('[name="productId"]'))return;var field=form.querySelector('input[name="attribution"]');if(!field){field=document.createElement('input');field.type='hidden';field.name='attribution';form.appendChild(field);}field.value=JSON.stringify(entry&&Date.now()-entry.time<=ttl?entry.data:{});},true);
 })();
+
+(()=>{const s=document.createElement('script');s.src='/assets/order-clicks.js';s.defer=true;document.head.append(s)})();
